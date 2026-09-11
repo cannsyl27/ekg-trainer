@@ -1,4 +1,3 @@
-<!-- Save this file exactly as index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -249,3 +248,289 @@
         <svg id="ekg-svg" class="ekg-canvas" viewBox="0 0 1000 180" preserveAspectRatio="none">
             <defs>
                 <pattern id="smallGrid" width="4" height="4" patternUnits="userSpaceOnUse">
+
+
+Select all active telemetry features:
+
+Submit Diagnosis
+Next Strip »
+
+Rotation Complete!
+Log your performance report into the facility database:
+
+Save to Local Storage
+Download Report
+
+
+Facility Board
+
+const ekgDeck = [
+{
+name: "Normal Sinus Rhythm",
+path: "M 0,90 Q 15,85 25,90 L 65,90 L 70,100 L 75,30 L 82,110 L 86,90 L 105,90 Q 120,75 135,90 L 165,90 Q 180,85 190,90 L 230,90 L 235,100 L 240,30 L 247,110 L 251,90 L 270,90 Q 285,75 300,90 L 330,90 Q 345,85 355,90 L 395,90 L 400,100 L 405,30 L 412,110 L 416,90 L 435,90 Q 450,75 465,90 L 495,90 Q 510,85 520,90 L 560,90 L 565,100 L 570,30 L 577,110 L 581,90 L 600,90 Q 615,75 630,90 L 660,90 Q 675,85 685,90 L 725,90 L 730,100 L 735,30 L 742,110 L 746,90 L 765,90 Q 780,75 795,90 L 825,90 Q 840,85 850,90 L 890,90 L 895,100 L 900,30 L 907,110 L 911,90 L 930,90 Q 945,75 960,90 L 1000,90",
+answers: ["Normal Sinus Rhythm", "Regular Rhythm", "Normal QRS Width", "Distinct P-Waves Present"]
+},
+{
+name: "Sinus Bradycardia with ST-Elevation",
+path: "M 0,90 Q 20,85 35,90 L 120,90 L 125,100 L 130,25 L 138,110 L 142,75 L 175,75 Q 195,65 210,90 L 420,90 Q 440,85 455,90 L 540,90 L 545,100 L 550,25 L 558,110 L 562,75 L 595,75 Q 615,65 630,90 L 840,90 Q 860,85 875,90 L 960,90 L 965,100 L 970,25 L 978,110 L 982,75 L 1000,75",
+answers: ["Sinus Bradycardia", "Regular Rhythm", "ST-Segment Elevation", "Distinct P-Waves Present"]
+},
+{
+name: "Sinus Tachycardia",
+path: "M 0,90 L 15,90 L 18,100 L 22,25 L 26,105 L 29,90 L 40,90 Q 50,78 60,90 L 75,90 L 78,100 L 82,25 L 86,105 L 89,90 L 100,90 Q 110,78 120,90 L 135,90 L 138,100 L 142,25 L 146,105 L 149,90 L 160,90 Q 170,78 180,90 L 195,90 L 198,100 L 202,25 L 206,105 L 209,90 L 220,90 Q 230,78 240,90 L 255,90 L 258,100 L 262,25 L 266,105 L 269,90 L 280,90 Q 290,78 300,90 L 315,90 L 318,100 L 322,25 L 326,105 L 329,90 L 340,90 Q 350,78 360,90 L 375,90 L 378,100 L 382,25 L 386,105 L 389,90 L 400,90 Q 410,78 420,90 L 435,90 L 438,100 L 442,25 L 446,105 L 449,90 L 460,90 Q 470,78 480,90 L 495,90 L 498,100 L 502,25 L 506,105 L 509,90 L 520,90 Q 530,78 540,90 L 555,90 L 558,100 L 562,25 L 566,105 L 569,90 L 580,90 Q 590,78 600,90 L 615,90 L 618,100 L 622,25 L 626,105 L 629,90 L 640,90 Q 650,78 660,90 L 675,90 L 678,100 L 682,25 L 686,105 L 689,90 L 700,90 Q 710,78 720,90 L 735,90 L 738,100 L 742,25 L 746,105 L 749,90 L 760,90 Q 770,78 780,90 L 795,90 L 798,100 L 802,25 L 806,105 L 809,90 L 820,90 Q 830,78 840,90 L 855,90 L 858,100 L 862,25 L 866,105 L 869,90 L 880,90 Q 890,78 900,90 L 915,90 L 918,100 L 922,25 L 926,105 L 929,90 L 940,90 Q 950,78 960,90 L 975,90 L 978,100 L 982,25 L 986,105 L 989,90 L 1000,90",
+answers: ["Sinus Tachycardia", "Regular Rhythm", "Normal QRS Width", "Distinct P-Waves Present"]
+},
+{
+name: "Atrial Fibrillation",
+path: "M 0,90 Q 5,87 10,92 L 13,102 L 17,20 L 22,112 L 26,90 T 45,92 L 48,102 L 52,20 L 57,112 L 61,90 T 95,92 L 98,102 L 102,20 L 107,112 L 111,90 T 135,92 L 138,102 L 142,20 L 147,112 L 151,90 T 215,92 L 218,102 L 222,20 L 227,112 L 231,90 T 265,92 L 268,102 L 272,20 L 277,112 L 281,90 T 340,92 L 343,102 L 347,20 L 352,112 L 356,90 T 410,92 L 413,102 L 417,20 L 422,112 L 426,90 T 445,92 L 448,102 L 452,20 L 457,112 L 461,90 T 520,92 L 523,102 L 527,20 L 532,112 L 536,90 T 605,92 L 608,102 L 612,20 L 617,112 L 621,90 T 650,92 L 653,102 L 657,20 L 662,112 L 666,90 T 745,92 L 748,102 L 752,20 L 757,112 L 761,90 T 815,92 L 818,102 L 822,20 L 827,112 L 831,90 T 860,92 L 863,102 L 867,20 L 872,112 L 876,90 T 935,92 L 938,102 L 942,20 L 947,112 L 951,90 T 1000,90",
+answers: ["Atrial Fibrillation", "Irregularly Irregular Rhythm", "Chaotic/Fibrillatory Baseline", "Absent P-Waves"]
+},
+{
+name: "Ventricular Tachycardia (Monomorphic)",
+path: "M 0,90 Q 10,20 20,150 Q 30,20 40,150 Q 50,20 60,150 Q 70,20 80,150 Q 90,20 100,150 Q 110,20 120,150 Q 130,20 140,150 Q 150,20 160,150 Q 170,20 180,150 Q 190,20 200,150 Q 210,20 220,150 Q 230,20 240,150 Q 250,20 260,150 Q 270,20 280,150 Q 290,20 300,150 Q 310,20 320,150 Q 330,20 340,150 Q 350,20 360,150 Q 370,20 380,150 Q 390,20 400,150 Q 410,20 420,150 Q 430,20 440,150 Q 450,20 460,150 Q 470,20 480,150 Q 490,20 500,150 Q 510,20 520,150 Q 530,20 540,150 Q 550,20 560,150 Q 570,20 580,150 Q 590,20 600,150 Q 610,20 620,150 Q 630,20 640,150 Q 650,20 660,150 Q 670,20 680,150 Q 690,20 700,150 Q 710,20 720,150 Q 730,20 740,150 Q 750,20 760,150 Q 770,20 780,150 Q 790,20 800,150 Q 810,20 820,150 Q 830,20 840,150 Q 845,20 855,150 Q 865,20 875,150 Q 885,20 895,150 Q 905,20 915,150 Q 925,20 935,150 Q 945,20 955,150 Q 965,20 975,150 Q 985,20 1000,150",
+answers: ["Ventricular Tachycardia", "Wide/Bizarre QRS Complexes", "Regular Rhythm", "Absent P-Waves"]
+},
+{
+name: "Ventricular Fibrillation (Coarse)",
+path: "M 0,90 Q 5,40 12,130 Q 20,20 28,140 Q 32,60 40,110 Q 52,30 60,160 Q 68,70 75,120 Q 84,25 92,145 Q 105,40 115,135 Q 122,50 130,150 Q 142,30 150,120 Q 162,60 170,140 Q 182,20 190,155 Q 205,45 212,130 Q 224,35 235,145 Q 242,60 250,110 Q 262,20 274,160 Q 282,50 295,125 Q 312,30 324,140 Q 335,65 344,115 Q 355,40 366,150 Q 378,35 390,130 Q 402,70 415,110 Q 424,25 435,160 Q 444,55 455,135 Q 468,30 480,140 Q 492,60 505,120 Q 518,20 530,155 Q 544,45 556,130 Q 568,35 580,145 Q 592,60 604,110 Q 618,20 630,160 Q 644,50 656,125 Q 670,30 682,140 Q 694,65 706,115 Q 718,40 730,150 Q 744,35 756,130 Q 768,70 782,110 Q 794,25 806,160 Q 818,55 830,135 Q 844,30 856,140 Q 868,60 882,120 Q 894,20 906,155 Q 920,45 932,130 Q 944,35 956,145 Q 968,60 982,110 Q 994,20 1000,140",
+answers: ["Ventricular Fibrillation", "Chaotic/Fibrillatory Baseline", "Absent P-Waves", "No Discernible QRS Complexes"]
+},
+{
+name: "First-Degree AV Block",
+path: "M 0,90 Q 10,85 18,90 L 75,90 L 78,100 L 82,30 L 88,110 L 92,90 L 110,90 Q 125,75 140,90 L 195,90 Q 205,85 213,90 L 270,90 L 273,100 L 277,30 L 283,110 L 287,90 L 305,90 Q 320,75 335,90 L 390,90 Q 400,85 408,90 L 465,90 L 468,100 L 472,30 L 478,110 L 482,90 L 500,90 Q 515,75 530,90 L 585,90 Q 595,85 603,90 L 660,90 L 663,100 L 667,30 L 673,110 L 677,90 L 695,90 Q 710,75 725,90 L 780,90 Q 790,85 798,90 L 855,90 L 858,100 L 862,30 L 868,110 L 872,90 L 890,90 Q 905,75 920,90 L 975,90 Q 985,85 993,90 L 1000,90",
+answers: ["First-Degree AV Block", "Prolonged PR Interval", "Regular Rhythm", "Distinct P-Waves Present"]
+},
+{
+name: "Asystole (Flatline)",
+path: "M 0,90 L 120,90 Q 125,86 130,94 T 140,90 L 410,90 Q 415,87 420,93 T 430,90 L 740,90 Q 745,86 750,94 T 760,90 L 1000,90",
+answers: ["Asystole", "Absent P-Waves", "No Discernible QRS Complexes"]
+}
+];
+const criteriaPool = [
+"Normal Sinus Rhythm", "Sinus Bradycardia", "Sinus Tachycardia", "Atrial Fibrillation",
+"Ventricular Tachycardia", "Ventricular Fibrillation", "First-Degree AV Block", "Asystole",
+"Regular Rhythm", "Irregularly Irregular Rhythm", "Wide/Bizarre QRS Complexes", "Normal QRS Width",
+"Distinct P-Waves Present", "Absent P-Waves", "Prolonged PR Interval", "ST-Segment Elevation",
+"Chaotic/Fibrillatory Baseline", "No Discernible QRS Complexes"
+];
+let currentIndex = 0;
+let attempted = 0;
+let score = 0;
+let currentStreak = 0;
+let highestStreak = 0;
+let timerInterval = null;
+let timeRemaining = 20;
+let isTimerActive = false;
+function initLayout() {
+loadTelemetryStrip();
+renderLeaderboard();
+}
+function loadTelemetryStrip() {
+if (currentIndex >= ekgDeck.length) {
+endDiagnosticRotation();
+return;
+}
+const data = ekgDeck[currentIndex];
+document.getElementById("progress-text").innerText = Rhythm ${currentIndex + 1} of ${ekgDeck.length};
+document.getElementById("ekg-signal").setAttribute("d", data.path);
+const grid = document.getElementById("options-container");
+grid.innerHTML = "";
+criteriaPool.forEach((item, idx) => {
+const card = document.createElement("div");
+card.className = "option-card";
+card.id = card-${idx};
+card.onclick = () => selectCard(idx);
+const check = document.createElement("input");
+check.type = "checkbox";
+check.id = check-${idx};
+check.value = item;
+check.onclick = (e) => e.stopPropagation();
+check.onchange = () => updateCardHighlight(idx);
+const lbl = document.createElement("label");
+lbl.setAttribute("for", check-${idx});
+lbl.innerText = item;
+lbl.onclick = (e) => e.stopPropagation();
+card.appendChild(check);
+card.appendChild(lbl);
+grid.appendChild(card);
+});
+document.getElementById("summary").style.display = "none";
+document.getElementById("alarm-banner").style.display = "none";
+document.getElementById("btn-submit").disabled = false;
+document.getElementById("btn-next").disabled = true;
+beginTimerCountdown();
+}
+function selectCard(idx) {
+if(document.getElementById("btn-submit").disabled) return;
+const box = document.getElementById(check-${idx});
+box.checked = !box.checked;
+updateCardHighlight(idx);
+}
+function updateCardHighlight(idx) {
+const box = document.getElementById(check-${idx});
+const card = document.getElementById(card-${idx});
+if(box.checked) card.classList.add("selected");
+else card.classList.remove("selected");
+}
+function toggleTimerSetting() {
+isTimerActive = document.getElementById("timer-toggle").checked;
+const box = document.getElementById("timer-slider-box");
+if(isTimerActive) {
+box.style.opacity = "1";
+box.style.pointerEvents = "auto";
+} else {
+box.style.opacity = "0.4";
+box.style.pointerEvents = "none";
+clearInterval(timerInterval);
+document.getElementById("hud-timer").innerText = "TIMER: OFF";
+}
+}
+function updateTimerLabel() {
+const val = document.getElementById("timer-duration").value;
+document.getElementById("timer-label").innerHTML = <span style="color:var(--telemetry-cyan)">${val}</span>s;
+}
+function beginTimerCountdown() {
+clearInterval(timerInterval);
+if(!isTimerActive) return;
+timeRemaining = parseInt(document.getElementById("timer-duration").value);
+document.getElementById("hud-timer").innerText = TIMER: ${timeRemaining}s;
+document.getElementById("hud-timer").style.color = "var(--telemetry-cyan)";
+timerInterval = setInterval(() => {
+timeRemaining--;
+document.getElementById("hud-timer").innerText = TIMER: ${timeRemaining}s;
+if(timeRemaining <= 5) {
+document.getElementById("hud-timer").style.color = "var(--telemetry-red)";
+}
+if(timeRemaining <= 0) {
+clearInterval(timerInterval);
+triggerAlarmExpiration();
+}
+}, 1000);
+}
+function triggerAlarmExpiration() {
+document.getElementById("alarm-banner").style.display = "block";
+checkDiagnostic(true); // Process as a failed submission
+}
+function checkDiagnostic(forcedTimeout = false) {
+clearInterval(timerInterval);
+document.getElementById("btn-submit").disabled = true;
+document.getElementById("btn-next").disabled = false;
+const data = ekgDeck[currentIndex];
+let selected = [];
+criteriaPool.forEach((item, idx) => {
+const box = document.getElementById(check-${idx});
+const card = document.getElementById(card-${idx});
+box.disabled = true;
+const isChecked = box.checked && !forcedTimeout;
+const isCorrectAnswer = data.answers.includes(item);
+if(isChecked) selected.push(item);
+if (isChecked && isCorrectAnswer) {
+card.className = "option-card correct-selected";
+} else if (isChecked && !isCorrectAnswer) {
+card.className = "option-card incorrect-selected";
+} else if (!isChecked && isCorrectAnswer) {
+card.className = "option-card missed-indicator";
+}
+});
+const perfectlyMatches = !forcedTimeout &&
+data.answers.length === selected.length &&
+data.answers.every(val => selected.includes(val));
+attempted++;
+if(perfectlyMatches) {
+score++;
+currentStreak++;
+if(currentStreak > highestStreak) highestStreak = currentStreak;
+document.getElementById("summary-title").innerText = "✓ INTERPRETATION VERIFIED";
+document.getElementById("summary-title").style.color = "var(--telemetry-green)";
+} else {
+currentStreak = 0;
+document.getElementById("summary-title").innerText = forcedTimeout ? "⚠ CODE BLUE: TIMEOUT FAILURE" : "✗ DIAGNOSTIC DISCREPANCY";
+document.getElementById("summary-title").style.color = "var(--telemetry-red)";
+}
+document.getElementById("streak-counter").innerText = currentStreak;
+document.getElementById("hud-score").innerText = SCORE: ${score}/${attempted};
+document.getElementById("summary-desc").innerHTML = <strong>Target Indicators:</strong> ${data.answers.join(", ")};
+document.getElementById("summary").style.display = "block";
+}
+function advanceStrip() {
+currentIndex++;
+loadTelemetryStrip();
+}
+function endDiagnosticRotation() {
+document.getElementById("options-container").innerHTML = "";
+document.getElementById("summary").style.display = "none";
+document.getElementById("btn-submit").style.display = "none";
+document.getElementById("btn-next").style.display = "none";
+document.getElementById("save-score-panel").style.display = "block";
+}
+function commitScore() {
+const nameInput = document.getElementById("nurse-name").value.trim() || "Anonymous Nurse";
+const newRecord = {
+name: nameInput,
+score: ${score}/${attempted},
+date: new Date().toLocaleDateString()
+};
+let currentBoard = JSON.parse(localStorage.getItem("telemetry_board")) || [];
+currentBoard.push(newRecord);
+localStorage.setItem("telemetry_board", JSON.stringify(currentBoard));
+renderLeaderboard();
+// Reset state for a new session
+currentIndex = 0;
+attempted = 0;
+score = 0;
+currentStreak = 0;
+document.getElementById("save-score-panel").style.display = "none";
+document.getElementById("btn-submit").style.display = "block";
+document.getElementById("btn-next").style.display = "block";
+document.getElementById("hud-score").innerText = "SCORE: 0/0";
+document.getElementById("streak-counter").innerText = "0";
+loadTelemetryStrip();
+}
+function renderLeaderboard() {
+const board = JSON.parse(localStorage.getItem("telemetry_board")) || [];
+// Sort records highest score first
+board.sort((a,b) => {
+const valA = parseInt(a.score.split("/"));
+const valB = parseInt(b.score.split("/"));
+return valB - valA;
+});
+const tbody = document.getElementById("leaderboard-rows");
+tbody.innerHTML = board.length === 0 ? <tr><td colspan="3" style="color:var(--text-muted); text-align:center;">No records documented.</td></tr> : "";
+board.forEach(row => {
+const tr = document.createElement("tr");
+tr.innerHTML = <td><strong>${row.name}</strong></td><td><span style="color:var(--telemetry-cyan)">${row.score}</span></td><td style="color:var(--text-muted)">${row.date}</td>;
+tbody.appendChild(tr);
+});
+}
+function exportPerformanceTXT() {
+const name = document.getElementById("nurse-name").value.trim() || "Anonymous Nurse";
+const timerConfig = isTimerActive ? ${document.getElementById("timer-duration").value} seconds : "Disabled";
+const reportContent =
+`==================================================
+TELEMETRY MASTER CRITICAL CARE REPORT
+Date Evaluated      : ${new Date().toLocaleString()}
+Clinician Name     : ${name}
+Final Diagnostic Score: ${score} / ${attempted} (${Math.round((score/attempted)*100)}%)
+Peak Correct Streak : ${highestStreak} Rounds
+Interval Timer Mode : ${timerConfig}
+Status: Completed Telemetry Rotation Cycle.
+Verification Token: ${Math.random().toString(36).substring(2, 10).toUpperCase()}
+==================================================`;
+const blob = new Blob([reportContent], { type: "text/plain" });
+const link = document.createElement("a");
+link.href = URL.createObjectURL(blob);
+link.download = Telemetry_Report_${name.replace(/\s+/g, '_')}.txt;
+link.click();
+}
+window.onload = initLayout;
+
+
+
+
+<FollowUp>
+Let me know once you update your file on GitHub! If you run into any other layout hitches or want to expand the indicator list further, what **clinical diagnostic metrics** should we add or adjust next?
+</FollowUp>
+
+
+
+
