@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telemetry Master Pro: Clinical Rhythm Trainer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #090d18;
+            --panel-dark: #121a2c;
+            --panel-alt: #0a0f1d;
+            --border-color: #253150;
+            --text-main: #eef2ff;
+            --text-muted: #8791ac;
+            --telemetry-cyan: #22d3ee;
+            --telemetry-gold: #f2b544;
+            --telemetry-green: #34d399;
+            --telemetry-red: #f0475f;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 15% 0%, rgba(34,211,238,0.06), transparent 45%),
+                               radial-gradient(circle at 100% 100%, rgba(242,181,68,0.05), transparent 40%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1040px;
+            margin: 0 auto;
+            background: var(--panel-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 26px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+        }
+
+        header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--telemetry-cyan);
+            margin: 0;
+            font-size: 25px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin: 4px 0 0 0;
+            font-size: 13px;
+        }
+
+        .rotation-label { font-size: 12px; color: var(--text-muted); text-align: right; }
+        .rotation-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 19px; font-weight: 600; text-align: right;
+        }
+        .session-picker {
+            display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+            margin-top: 4px;
+        }
+        .session-picker label { font-size: 11px; color: var(--text-muted); }
+        .session-picker select {
+            background: var(--panel-alt); color: var(--text-main); border: 1px solid var(--border-color);
+            border-radius: 6px; padding: 3px 6px; font-family: 'Inter', sans-serif; font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* ---------- Top row: player name + streak ---------- */
+        .top-row {
+            display: flex; gap: 10px; margin-bottom: 16px; align-items: stretch; flex-wrap: wrap;
+        }
+
+        .player-field {
+            flex: 1; min-width: 180px; display: flex; align-items: center; gap: 8px;
+            background: var(--panel-alt); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 0 14px;
+        }
+        .player-field .field-icon { font-size: 15px; }
+        .player-field input {
+            flex: 1; background: transparent; border: none; color: var(--text-main);
+            font-family: 'Inter', sans-serif; font-size: 14px; padding: 11px 0; outline: none;
+        }
+        .player-field input::placeholder { color: var(--text-muted); }
+
+        .hud-card {
+            background: var(--panel-alt);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: border-color .3s ease, box-shadow .3s ease;
+            flex: 0 0 auto;
+            min-width: 130px;
+        }
+
+        .hud-icon { font-size: 20px; line-height: 1; }
+        .hud-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 2px; }
+        .hud-value { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-main); line-height: 1.1; }
+
+        .hud-streak.is-active {
+            border-color: var(--telemetry-gold);
+            box-shadow: 0 0 0 1px rgba(242,181,68,0.25), 0 0 18px rgba(242,181,68,0.18);
+        }
+        .hud-streak.is-active .hud-value { color: var(--telemetry-gold); }
+
+        /* ---------- Monitor: clean, no overlay text ---------- */
+        .monitor-panel {
+            background: #030711;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            position: relative;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .alarm-banner {
+            position: absolute; top: 0; left: 0; right: 0; background: var(--telemetry-red);
+            color: white; text-align: center; font-weight: 700; font-size: 13px; padding: 5px 0;
+            letter-spacing: 1.5px; display: none; z-index: 10; animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0.35; } }
+        @media (prefers-reduced-motion: reduce) { .alarm-banner { animation: none; } }
+
+        .ekg-canvas { display: block; width: 100%; height: 180px; }
+
+        /* ---------- Status bar under the strip: score + timer ---------- */
+        .status-bar {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+            gap: 10px; background: var(--panel-alt); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 9px 16px; margin-bottom: 20px;
+        }
+
+        .status-score, .status-timer { display: flex; align-items: center; gap: 8px; }
+        .status-icon { font-size: 15px; }
+        .status-value { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; }
+        #hud-score { color: var(--telemetry-cyan); }
+        #hud-timer.timer-warn { color: var(--telemetry-red); }
+
+        .mini-switch { position: relative; display: inline-block; width: 30px; height: 16px; flex-shrink: 0; }
+        .mini-switch input { opacity: 0; width: 0; height: 0; }
+        .mini-slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #354061; transition: .3s; border-radius: 16px;
+        }
+        .mini-slider:before {
+            position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .mini-slider { background-color: var(--telemetry-cyan); }
+        input:checked + .mini-slider:before { transform: translateX(14px); }
+
+        .timer-settings-wrap { position: relative; }
+        .gear-btn {
+            background: none; border: none; color: var(--text-muted); font-size: 15px;
+            cursor: pointer; padding: 3px 4px; line-height: 1;
+        }
+        .gear-btn:hover { color: var(--telemetry-cyan); }
+
+        .timer-settings-popover {
+            position: absolute; right: 0; top: calc(100% + 8px);
+            background: var(--panel-dark); border: 1px solid var(--border-color);
+            border-radius: 10px; padding: 12px 14px; box-shadow: 0 12px 24px rgba(0,0,0,.45);
+            display: flex; align-items: center; gap: 8px; z-index: 30; white-space: nowrap;
+        }
+        .timer-settings-popover[hidden] { display: none; }
+        .timer-settings-popover input[type="range"] { width: 120px; accent-color: var(--telemetry-cyan); cursor: pointer; }
+        .timer-settings-popover span { font-size: 12px; color: var(--text-muted); }
+        .timer-settings-popover .accent { color: var(--telemetry-cyan); font-weight: 600; }
+
+        /* ---------- Diagnosis pills ---------- */
+        .section-label { margin-bottom: 10px; font-weight: 600; color: var(--text-muted); font-size: 14px; }
+
+        .options-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 20px; }
+
+        .option-card {
+            background: var(--panel-alt); border: 1px solid var(--border-color); border-radius: 999px;
+            padding: 6px 11px; cursor: pointer; display: inline-flex; align-items: center;
+            transition: all 0.15s ease; user-select: none; font-size: 12.5px; white-space: nowrap;
+        }
+
+        .option-card:hover { border-color: var(--telemetry-cyan); background: #17233d; }
+        .option-card.selected { border-color: var(--telemetry-cyan); background: rgba(34,211,238,0.12); }
+
+        .option-card.correct-selected { border-color: var(--telemetry-green) !important; background: rgba(52,211,153,0.14) !important; }
+        .option-card.correct-selected::after { content: "✓"; margin-left: 6px; color: var(--telemetry-green); font-weight: 700; }
+
+        .option-card.incorrect-selected { border-color: var(--telemetry-red) !important; background: rgba(240,71,95,0.14) !important; text-decoration: line-through; opacity: 0.85; }
+        .option-card.incorrect-selected::after { content: "✗"; margin-left: 6px; color: var(--telemetry-red); font-weight: 700; }
+
+        .option-card.missed-indicator { border: 1px dashed var(--telemetry-gold) !important; background: rgba(242,181,68,0.12) !important; }
+        .option-card.missed-indicator::after { content: "⚠"; margin-left: 6px; color: var(--telemetry-gold); }
+
+        .action-bar { display: flex; justify-content: space-between; align-items: center; }
+
+        .btn {
+            padding: 12px 24px; font-size: 14px; font-weight: 600; border-radius: 8px;
+            border: none; cursor: pointer; transition: background 0.2s, transform .1s; font-family: 'Inter', sans-serif;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--telemetry-cyan); color: #04121a; }
+        .btn-primary:hover { background: #4ddfef; }
+        .btn-secondary { background: #263150; color: var(--text-main); }
+        .btn-secondary:hover { background: #32406a; }
+        .btn:disabled { background: #1c2439; color: #5b6580; cursor: not-allowed; }
+
+        .summary-box {
+            margin-top: 18px; padding: 15px; border-radius: 8px; background: var(--panel-alt);
+            border-left: 3px solid var(--telemetry-cyan); display: none;
+        }
+
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-top: 22px; }
+        @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+        .leaderboard-panel {
+            background: var(--panel-alt); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 16px;
+        }
+        .leaderboard-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 15px; color: var(--telemetry-cyan);
+            border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 4px;
+            display: flex; align-items: center; justify-content: space-between; gap: 6px;
+        }
+        .clear-board-btn {
+            background: none; border: 1px solid var(--border-color); color: var(--text-muted);
+            font-family: 'Inter', sans-serif; font-size: 11px; padding: 4px 9px; border-radius: 999px;
+            cursor: pointer; transition: all .15s ease;
+        }
+        .clear-board-btn:hover { border-color: var(--telemetry-red); color: var(--telemetry-red); }
+        .leaderboard-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .leaderboard-table th { text-align: left; color: var(--text-muted); padding: 6px; font-weight: 500; }
+        .leaderboard-table td { padding: 8px 6px; border-bottom: 1px solid #1c2439; }
+
+        .save-score-wrap {
+            display: none; background: var(--panel-alt); padding: 18px; border-radius: 10px;
+            margin-top: 20px; border: 1px solid var(--telemetry-cyan);
+        }
+        .save-score-wrap h3 { font-family: 'Space Grotesk', sans-serif; margin: 0 0 6px 0; color: var(--telemetry-cyan); }
+        .save-score-wrap p { margin: 0 0 12px 0; font-size: 14px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div>
+            <h1>Telemetry Master Pro</h1>
+            <p class="subtitle">Advanced Clinical Rhythm & Indicator Assessment Lab</p>
+        </div>
+        <div>
+            <div class="rotation-label">Current Rotation</div>
+            <div class="rotation-value" id="progress-text">Rhythm 1 of 8</div>
+            <div class="session-picker">
+                <label for="session-length-select">Rhythms:</label>
+                <select id="session-length-select" onchange="startNewSession()"></select>
+            </div>
+        </div>
+    </header>
+
+    <div class="top-row">
+        <div class="player-field">
+            <span class="field-icon">👤</span>
+            <input type="text" id="player-name" placeholder="Enter your name" maxlength="15">
+        </div>
+        <div class="hud-card hud-streak" id="streak-card">
+            <div class="hud-icon">🔥</div>
+            <div>
+                <div class="hud-label">Streak</div>
+                <div class="hud-value" id="streak-counter">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="monitor-panel">
+        <div class="alarm-banner" id="alarm-banner">CRITICAL ALARM: TIME EXPIRED — UNRESPONSIVE DIAGNOSTIC</div>
+        <svg id="ekg-svg" class="ekg-canvas" viewBox="0 0 1000 180" preserveAspectRatio="none">
+            <defs>
+                <pattern id="smallGrid" width="4" height="4" patternUnits="userSpaceOnUse">
+                    <path d="M 4 0 L 0 0 0 4" fill="none" stroke="#2c3a5e" stroke-width="0.5"/>
+                </pattern>
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <rect width="20" height="20" fill="url(#smallGrid)"/>
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#425380" stroke-width="0.9"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+            <path id="ekg-signal" d="" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0px 0px 3px rgba(34,211,238,0.7));"/>
+        </svg>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-score">
+            <span class="status-icon">🎯</span>
+            <span class="status-value" id="hud-score">0/0</span>
+        </div>
+        <div class="status-timer">
+            <label class="mini-switch">
+                <input type="checkbox" id="timer-toggle" onchange="toggleTimerSetting()">
+                <span class="mini-slider"></span>
+            </label>
+            <span class="status-icon">⏱</span>
+            <span class="status-value" id="hud-timer">OFF</span>
+            <div class="timer-settings-wrap">
+                <button type="button" class="gear-btn" onclick="toggleTimerSettingsPopover(event)" aria-label="Timer settings">⚙</button>
+                <div class="timer-settings-popover" id="timer-settings-popover" hidden>
+                    <input type="range" id="timer-duration" min="5" max="60" value="20" oninput="updateTimerLabel()">
+                    <span id="timer-label"><span class="accent">20</span>s limit</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div>
+            <!-- Active Clinical Exercise Zone -->
+            <div id="quiz-workspace">
+                <div class="section-label">Select all active telemetry features:</div>
+                <div id="options-container" class="options-grid"></div>
+
+                <div class="action-bar">
+                    <button id="btn-submit" class="btn btn-primary" onclick="checkDiagnostic()">Submit Diagnosis</button>
+                    <button id="btn-next" class="btn btn-secondary" onclick="advanceStrip()" disabled>Next Strip &raquo;</button>
+                </div>
+
+                <div id="summary" class="summary-box">
+                    <div id="summary-title" style="font-weight: bold; font-size: 16px; margin-bottom: 5px; font-family: 'Space Grotesk', sans-serif;"></div>
+                    <div id="summary-desc" style="font-size: 14px; color: var(--text-muted); line-height: 1.4;"></div>
+                </div>
+            </div>
+
+            <!-- Post-Rotation Terminal Screen -->
+            <div id="save-score-panel" class="save-score-wrap">
+                <h3>Rotation Complete! 🏁</h3>
+                <p>Ready to save your score to the board?</p>
+                <div>
+                    <button id="btn-save-score" class="btn btn-primary" style="padding: 12px 20px; font-size: 14px;" onclick="commitScore()">Save Score</button>
+                    <button id="btn-download" class="btn btn-secondary" style="padding: 12px 20px; font-size: 14px; margin-left: 5px;" onclick="exportPerformanceTXT()">Download Report</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="leaderboard-panel">
+            <div class="leaderboard-title">
+                <span>🏆 Score Board</span>
+                <button type="button" class="clear-board-btn" onclick="clearScoreboard()">Clear</button>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">Shared with everyone using this app</div>
+            <div id="leaderboard-loading" style="font-size: 13px; color: var(--text-muted);">Loading scores...</div>
+            <div style="max-height: 320px; overflow-y: auto;">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr><th>Player</th><th>Score</th><th>Date</th></tr>
+                    </thead>
+                    <tbody id="leaderboard-rows"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var ekgDeck = [
+        {
+            name: "Normal Sinus Rhythm",
+            path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,82 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 160,90 Q 164,82 168,90 L 176,90 L 178,100 L 180,30 L 182,110 L 184,90 L 192,90 Q 200,75 208,90 L 240,90 Q 244,82 248,90 L 256,90 L 258,100 L 260,30 L 262,110 L 264,90 L 272,90 Q 280,75 288,90 L 320,90 Q 324,82 328,90 L 336,90 L 338,100 L 340,30 L 342,110 L 344,90 L 352,90 Q 360,75 368,90 L 400,90 Q 404,82 408,90 L 416,90 L 418,100 L 420,30 L 422,110 L 424,90 L 432,90 Q 440,75 448,90 L 480,90 Q 484,82 488,90 L 496,90 L 498,100 L 500,30 L 502,110 L 504,90 L 512,90 Q 520,75 528,90 L 560,90 Q 564,82 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 640,90 Q 644,82 648,90 L 656,90 L 658,100 L 660,30 L 662,110 L 664,90 L 672,90 Q 680,75 688,90 L 720,90 Q 724,82 728,90 L 736,90 L 738,100 L 740,30 L 742,110 L 744,90 L 752,90 Q 760,75 768,90 L 800,90 Q 804,82 808,90 L 816,90 L 818,100 L 820,30 L 822,110 L 824,90 L 832,90 Q 840,75 848,90 L 880,90 Q 884,82 888,90 L 896,90 L 898,100 L 900,30 L 902,110 L 904,90 L 912,90 Q 920,75 928,90 L 960,90 Q 964,82 968,90 L 976,90 L 978,100 L 980,30 L 982,110 L 984,90 L 992,90 Q 1000,75 1008,90 L 1040,90",
+            answers: ["Normal Sinus Rhythm", "Regular Rhythm", "Normal QRS Width", "Distinct P-Waves Present"]
+        },
+        {
+            name: "Sinus Bradycardia with ST-Elevation",
+            path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,80 L 32,80 Q 40,70 48,90 L 150,90 Q 154,82 158,90 L 166,90 L 168,100 L 170,30 L 172,110 L 174,80 L 182,80 Q 190,70 198,90 L 300,90 Q 304,82 308,90 L 316,90 L 318,100 L 320,30 L 322,110 L 324,80 L 332,80 Q 340,70 348,90 L 450,90 Q 454,82 458,90 L 466,90 L 468,100 L 470,30 L 472,110 L 474,80 L 482,80 Q 490,70 498,90 L 600,90 Q 604,82 608,90 L 616,90 L 618,100 L 620,30 L 622,110 L 624,80 L 632,80 Q 640,70 648,90 L 750,90 Q 754,82 758,90 L 766,90 L 768,100 L 770,30 L 772,110 L 774,80 L 782,80 Q 790,70 798,90 L 900,90 Q 904,82 908,90 L 916,90 L 918,100 L 920,30 L 922,110 L 924,80 L 932,80 Q 940,70 948,90 L 1050,90",
+            answers: ["Sinus Bradycardia", "Regular Rhythm", "ST-Segment Elevation", "Distinct P-Waves Present"]
+        },
+        {
+            name: "Sinus Tachycardia",
+            path: "M 0,90 Q 3,83 6,90 L 12,90 L 14,100 L 16,30 L 18,110 L 20,90 L 24,90 Q 30,77 36,90 L 50,90 Q 53,83 56,90 L 62,90 L 64,100 L 66,30 L 68,110 L 70,90 L 74,90 Q 80,77 86,90 L 100,90 Q 103,83 106,90 L 112,90 L 114,100 L 116,30 L 118,110 L 120,90 L 124,90 Q 130,77 136,90 L 150,90 Q 153,83 156,90 L 162,90 L 164,100 L 166,30 L 168,110 L 170,90 L 174,90 Q 180,77 186,90 L 200,90 Q 203,83 206,90 L 212,90 L 214,100 L 216,30 L 218,110 L 220,90 L 224,90 Q 230,77 236,90 L 250,90 Q 253,83 256,90 L 262,90 L 264,100 L 266,30 L 268,110 L 270,90 L 274,90 Q 280,77 286,90 L 300,90 Q 303,83 306,90 L 312,90 L 314,100 L 316,30 L 318,110 L 320,90 L 324,90 Q 330,77 336,90 L 350,90 Q 353,83 356,90 L 362,90 L 364,100 L 366,30 L 368,110 L 370,90 L 374,90 Q 380,77 386,90 L 400,90 Q 403,83 406,90 L 412,90 L 414,100 L 416,30 L 418,110 L 420,90 L 424,90 Q 430,77 436,90 L 450,90 Q 453,83 456,90 L 462,90 L 464,100 L 466,30 L 468,110 L 470,90 L 474,90 Q 480,77 486,90 L 500,90 Q 503,83 506,90 L 512,90 L 514,100 L 516,30 L 518,110 L 520,90 L 524,90 Q 530,77 536,90 L 550,90 Q 553,83 556,90 L 562,90 L 564,100 L 566,30 L 568,110 L 570,90 L 574,90 Q 580,77 586,90 L 600,90 Q 603,83 606,90 L 612,90 L 614,100 L 616,30 L 618,110 L 620,90 L 624,90 Q 630,77 636,90 L 650,90 Q 653,83 656,90 L 662,90 L 664,100 L 666,30 L 668,110 L 670,90 L 674,90 Q 680,77 686,90 L 700,90 Q 703,83 706,90 L 712,90 L 714,100 L 716,30 L 718,110 L 720,90 L 724,90 Q 730,77 736,90 L 750,90 Q 753,83 756,90 L 762,90 L 764,100 L 766,30 L 768,110 L 770,90 L 774,90 Q 780,77 786,90 L 800,90 Q 803,83 806,90 L 812,90 L 814,100 L 816,30 L 818,110 L 820,90 L 824,90 Q 830,77 836,90 L 850,90 Q 853,83 856,90 L 862,90 L 864,100 L 866,30 L 868,110 L 870,90 L 874,90 Q 880,77 886,90 L 900,90 Q 903,83 906,90 L 912,90 L 914,100 L 916,30 L 918,110 L 920,90 L 924,90 Q 930,77 936,90 L 950,90 Q 953,83 956,90 L 962,90 L 964,100 L 966,30 L 968,110 L 970,90 L 974,90 Q 980,77 986,90 L 1000,90",
+            answers: ["Sinus Tachycardia", "Regular Rhythm", "Normal QRS Width", "Distinct P-Waves Present"]
+        },
+        {
+            name: "Atrial Fibrillation",
+            path: "M 0,90 Q 5,87 10,92 L 13,102 L 17,20 L 22,112 L 26,90 T 45,92 L 48,102 L 52,20 L 57,112 L 61,90 T 95,92 L 98,102 L 102,20 L 107,112 L 111,90 T 135,92 L 138,102 L 142,20 L 147,112 L 151,90 T 215,92 L 218,102 L 222,20 L 227,112 L 231,90 T 265,92 L 268,102 L 272,20 L 277,112 L 281,90 T 340,92 L 343,102 L 347,20 L 352,112 L 356,90 T 410,92 L 413,102 L 417,20 L 422,112 L 426,90 T 445,92 L 448,102 L 452,20 L 457,112 L 461,90 T 520,92 L 523,102 L 527,20 L 532,112 L 536,90 T 605,92 L 608,102 L 612,20 L 617,112 L 621,90 T 650,92 L 653,102 L 657,20 L 662,112 L 666,90 T 745,92 L 748,102 L 752,20 L 757,112 L 761,90 T 815,92 L 818,102 L 822,20 L 827,112 L 831,90 T 860,92 L 863,102 L 867,20 L 872,112 L 876,90 T 935,92 L 938,102 L 942,20 L 947,112 L 951,90 T 1000,90",
+            answers: ["Atrial Fibrillation", "Irregularly Irregular Rhythm", "Chaotic/Fibrillatory Baseline", "Absent P-Waves"]
+        },
+        {
+            name: "Ventricular Tachycardia (Monomorphic)",
+            path: "M 0,90 Q 20,20 40,150 Q 60,20 80,150 Q 100,20 120,150 Q 140,20 160,150 Q 180,20 200,150 Q 220,20 240,150 Q 260,20 280,150 Q 300,20 320,150 Q 340,20 360,150 Q 380,20 400,150 Q 420,20 440,150 Q 460,20 480,150 Q 500,20 520,150 Q 540,20 560,150 Q 580,20 600,150 Q 620,20 640,150 Q 660,20 680,150 Q 700,20 720,150 Q 740,20 760,150 Q 780,20 800,150 Q 820,20 840,150 Q 860,20 880,150 Q 900,20 920,150 Q 940,20 960,150 Q 980,20 1000,150",
+            answers: ["Ventricular Tachycardia", "Wide/Bizarre QRS Complexes", "Regular Rhythm", "Absent P-Waves"]
+        },
+        {
+            name: "Ventricular Fibrillation (Coarse)",
+            path: "M 0,90 Q 5,40 12,130 Q 20,20 28,140 Q 32,60 40,110 Q 52,30 60,160 Q 68,70 75,120 Q 84,25 92,145 Q 105,40 115,135 Q 122,50 130,150 Q 142,30 150,120 Q 162,60 170,140 Q 182,20 190,155 Q 205,45 212,130 Q 224,35 235,145 Q 242,60 250,110 Q 262,20 274,160 Q 282,50 295,125 Q 312,30 324,140 Q 335,65 344,115 Q 355,40 366,150 Q 378,35 390,130 Q 402,70 415,110 Q 424,25 435,160 Q 444,55 455,135 Q 468,30 480,140 Q 492,60 505,120 Q 518,20 530,155 Q 544,45 556,130 Q 568,35 580,145 Q 592,60 604,110 Q 618,20 630,160 Q 644,50 656,125 Q 670,30 682,140 Q 694,65 706,115 Q 718,40 730,150 Q 744,35 756,130 Q 768,70 782,110 Q 794,25 806,160 Q 818,55 830,135 Q 844,30 856,140 Q 868,60 882,120 Q 894,20 906,155 Q 920,45 932,130 Q 944,35 956,145 Q 968,60 982,110 Q 994,20 1000,140",
+            answers: ["Ventricular Fibrillation", "Chaotic/Fibrillatory Baseline", "Absent P-Waves", "No Discernible QRS Complexes"]
+        },
+        {
+            name: "First-Degree AV Block",
+            path: "M 0,90 Q 4,82 8,90 L 28,90 L 30,100 L 32,30 L 34,110 L 36,90 L 44,90 Q 52,75 60,90 L 80,90 Q 84,82 88,90 L 108,90 L 110,100 L 112,30 L 114,110 L 116,90 L 124,90 Q 132,75 140,90 L 160,90 Q 164,82 168,90 L 188,90 L 190,100 L 192,30 L 194,110 L 196,90 L 204,90 Q 212,75 220,90 L 240,90 Q 244,82 248,90 L 268,90 L 270,100 L 272,30 L 274,110 L 276,90 L 284,90 Q 292,75 300,90 L 320,90 Q 324,82 328,90 L 348,90 L 350,100 L 352,30 L 354,110 L 356,90 L 364,90 Q 372,75 380,90 L 400,90 Q 404,82 408,90 L 428,90 L 430,100 L 432,30 L 434,110 L 436,90 L 444,90 Q 452,75 460,90 L 480,90 Q 484,82 488,90 L 508,90 L 510,100 L 512,30 L 514,110 L 516,90 L 524,90 Q 532,75 540,90 L 560,90 Q 564,82 568,90 L 588,90 L 590,100 L 592,30 L 594,110 L 596,90 L 604,90 Q 612,75 620,90 L 640,90 Q 644,82 648,90 L 668,90 L 670,100 L 672,30 L 674,110 L 676,90 L 684,90 Q 692,75 700,90 L 720,90 Q 724,82 728,90 L 748,90 L 750,100 L 752,30 L 754,110 L 756,90 L 764,90 Q 772,75 780,90 L 800,90 Q 804,82 808,90 L 828,90 L 830,100 L 832,30 L 834,110 L 836,90 L 844,90 Q 852,75 860,90 L 880,90 Q 884,82 888,90 L 908,90 L 910,100 L 912,30 L 914,110 L 916,90 L 924,90 Q 932,75 940,90 L 960,90 Q 964,82 968,90 L 988,90 L 990,100 L 992,30 L 994,110 L 996,90 L 1004,90 Q 1012,75 1020,90 L 1040,90",
+            answers: ["First-Degree AV Block", "Prolonged PR Interval", "Regular Rhythm", "Distinct P-Waves Present"]
+        },
+        {
+            name: "Asystole (Flatline)",
+            path: "M 0,90 L 120,90 Q 125,86 130,94 T 140,90 L 410,90 Q 415,87 420,93 T 430,90 L 740,90 Q 745,86 750,94 T 760,90 L 1000,90",
+            answers: ["Asystole", "Absent P-Waves", "No Discernible QRS Complexes"]
+        },
+        {
+            name: "Junctional Rhythm",
+            path: "M 0,90 L 20,90 L 22,100 L 24,30 L 26,110 L 28,90 L 36,90 Q 44,75 52,90 L 110,90 L 130,90 L 132,100 L 134,30 L 136,110 L 138,90 L 146,90 Q 154,75 162,90 L 220,90 L 240,90 L 242,100 L 244,30 L 246,110 L 248,90 L 256,90 Q 264,75 272,90 L 330,90 L 350,90 L 352,100 L 354,30 L 356,110 L 358,90 L 366,90 Q 374,75 382,90 L 440,90 L 460,90 L 462,100 L 464,30 L 466,110 L 468,90 L 476,90 Q 484,75 492,90 L 550,90 L 570,90 L 572,100 L 574,30 L 576,110 L 578,90 L 586,90 Q 594,75 602,90 L 660,90 L 680,90 L 682,100 L 684,30 L 686,110 L 688,90 L 696,90 Q 704,75 712,90 L 770,90 L 790,90 L 792,100 L 794,30 L 796,110 L 798,90 L 806,90 Q 814,75 822,90 L 880,90 L 900,90 L 902,100 L 904,30 L 906,110 L 908,90 L 916,90 Q 924,75 932,90 L 990,90 L 1010,90 L 1012,100 L 1014,30 L 1016,110 L 1018,90 L 1026,90 Q 1034,75 1042,90 L 1100,90 L 1120,90 L 1122,100 L 1124,30 L 1126,110 L 1128,90 L 1136,90 Q 1144,75 1152,90 L 1210,90",
+            answers: ["Junctional Rhythm", "Absent P-Waves", "Normal QRS Width", "Regular Rhythm"]
+        },
+        {
+            name: "Sinus Arrhythmia",
+            path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,82 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 175.588,90 Q 179.588,82 183.588,90 L 191.588,90 L 193.588,100 L 195.588,30 L 197.588,110 L 199.588,90 L 207.588,90 Q 215.588,75 223.588,90 L 271.177,90 Q 275.177,82 279.177,90 L 287.177,90 L 289.177,100 L 291.177,30 L 293.177,110 L 295.177,90 L 303.177,90 Q 311.177,75 319.177,90 L 351.177,90 Q 355.177,82 359.177,90 L 367.177,90 L 369.177,100 L 371.177,30 L 373.177,110 L 375.177,90 L 383.177,90 Q 391.177,75 399.177,90 L 415.588,90 Q 419.588,82 423.588,90 L 431.588,90 L 433.588,100 L 435.588,30 L 437.588,110 L 439.588,90 L 447.588,90 Q 455.588,75 463.588,90 L 480,90 Q 484,82 488,90 L 496,90 L 498,100 L 500,30 L 502,110 L 504,90 L 512,90 Q 520,75 528,90 L 560,90 Q 564,82 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 655.588,90 Q 659.588,82 663.588,90 L 671.588,90 L 673.588,100 L 675.588,30 L 677.588,110 L 679.588,90 L 687.588,90 Q 695.588,75 703.588,90 L 751.177,90 Q 755.177,82 759.177,90 L 767.177,90 L 769.177,100 L 771.177,30 L 773.177,110 L 775.177,90 L 783.177,90 Q 791.177,75 799.177,90 L 831.177,90 Q 835.177,82 839.177,90 L 847.177,90 L 849.177,100 L 851.177,30 L 853.177,110 L 855.177,90 L 863.177,90 Q 871.177,75 879.177,90 L 895.588,90 Q 899.588,82 903.588,90 L 911.588,90 L 913.588,100 L 915.588,30 L 917.588,110 L 919.588,90 L 927.588,90 Q 935.588,75 943.588,90 L 960,90 Q 964,82 968,90 L 976,90 L 978,100 L 980,30 L 982,110 L 984,90 L 992,90 Q 1000,75 1008,90 L 1040,90 Q 1044,82 1048,90 L 1056,90 L 1058,100 L 1060,30 L 1062,110 L 1064,90 L 1072,90 Q 1080,75 1088,90 L 1135.59,90",
+            answers: ["Sinus Arrhythmia", "Phasic Variation with Respiration", "Distinct P-Waves Present", "Normal QRS Width"]
+        },
+        {
+            name: "Premature Ventricular Contraction (PVC)",
+            path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,82 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 136,90 Q 142.4,20 148.8,125 L 152,90 L 240,90 Q 244,82 248,90 L 256,90 L 258,100 L 260,30 L 262,110 L 264,90 L 272,90 Q 280,75 288,90 L 320,90 Q 324,82 328,90 L 336,90 L 338,100 L 340,30 L 342,110 L 344,90 L 352,90 Q 360,75 368,90 L 400,90 Q 404,82 408,90 L 416,90 L 418,100 L 420,30 L 422,110 L 424,90 L 432,90 Q 440,75 448,90 L 480,90 Q 484,82 488,90 L 496,90 L 498,100 L 500,30 L 502,110 L 504,90 L 512,90 Q 520,75 528,90 L 560,90 Q 564,82 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 640,90 Q 644,82 648,90 L 656,90 L 658,100 L 660,30 L 662,110 L 664,90 L 672,90 Q 680,75 688,90 L 720,90 Q 724,82 728,90 L 736,90 L 738,100 L 740,30 L 742,110 L 744,90 L 752,90 Q 760,75 768,90 L 800,90 Q 804,82 808,90 L 816,90 L 818,100 L 820,30 L 822,110 L 824,90 L 832,90 Q 840,75 848,90 L 880,90 Q 884,82 888,90 L 896,90 L 898,100 L 900,30 L 902,110 L 904,90 L 912,90 Q 920,75 928,90 L 960,90 Q 964,82 968,90 L 976,90 L 978,100 L 980,30 L 982,110 L 984,90 L 992,90 Q 1000,75 1008,90 L 1040,90 Q 1044,82 1048,90 L 1056,90 L 1058,100 L 1060,30 L 1062,110 L 1064,90 L 1072,90 Q 1080,75 1088,90 L 1120,90",
+            answers: ["Premature Ventricular Contraction (PVC)", "Wide/Bizarre QRS Complexes", "No Preceding P Wave", "Compensatory Pause"]
+        },
+        {
+            name: "Premature Atrial Contraction (PAC)",
+            path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,82 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 136,90 Q 139,96 142,90 L 146,90 L 148,100 L 150,30 L 152,110 L 154,90 L 162,90 Q 170,75 178,90 L 216,90 Q 220,82 224,90 L 232,90 L 234,100 L 236,30 L 238,110 L 240,90 L 248,90 Q 256,75 264,90 L 296,90 Q 300,82 304,90 L 312,90 L 314,100 L 316,30 L 318,110 L 320,90 L 328,90 Q 336,75 344,90 L 376,90 Q 380,82 384,90 L 392,90 L 394,100 L 396,30 L 398,110 L 400,90 L 408,90 Q 416,75 424,90 L 456,90 Q 460,82 464,90 L 472,90 L 474,100 L 476,30 L 478,110 L 480,90 L 488,90 Q 496,75 504,90 L 536,90 Q 540,82 544,90 L 552,90 L 554,100 L 556,30 L 558,110 L 560,90 L 568,90 Q 576,75 584,90 L 616,90 Q 620,82 624,90 L 632,90 L 634,100 L 636,30 L 638,110 L 640,90 L 648,90 Q 656,75 664,90 L 696,90 Q 700,82 704,90 L 712,90 L 714,100 L 716,30 L 718,110 L 720,90 L 728,90 Q 736,75 744,90 L 776,90 Q 780,82 784,90 L 792,90 L 794,100 L 796,30 L 798,110 L 800,90 L 808,90 Q 816,75 824,90 L 856,90 Q 860,82 864,90 L 872,90 L 874,100 L 876,30 L 878,110 L 880,90 L 888,90 Q 896,75 904,90 L 936,90 Q 940,82 944,90 L 952,90 L 954,100 L 956,30 L 958,110 L 960,90 L 968,90 Q 976,75 984,90 L 1016,90 Q 1020,82 1024,90 L 1032,90 L 1034,100 L 1036,30 L 1038,110 L 1040,90 L 1048,90 Q 1056,75 1064,90 L 1096,90",
+            answers: ["Premature Atrial Contraction (PAC)", "Early P Wave with Different Morphology", "Normal QRS Width", "Non-Compensatory Pause"]
+        },
+        {
+            name: "Second-Degree AV Block (Type I / Wenckebach)",
+            path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 70,90 Q 74,82 78,90 L 92,90 L 94,100 L 96,30 L 98,110 L 100,90 L 108,90 Q 116,75 124,90 L 140,90 Q 144,82 148,90 L 168,90 L 170,100 L 172,30 L 174,110 L 176,90 L 184,90 Q 192,75 200,90 L 210,90 Q 214,82 218,90 L 280,90 Q 284,82 288,90 L 296,90 L 298,100 L 300,30 L 302,110 L 304,90 L 312,90 Q 320,75 328,90 L 350,90 Q 354,82 358,90 L 372,90 L 374,100 L 376,30 L 378,110 L 380,90 L 388,90 Q 396,75 404,90 L 420,90 Q 424,82 428,90 L 448,90 L 450,100 L 452,30 L 454,110 L 456,90 L 464,90 Q 472,75 480,90 L 490,90 Q 494,82 498,90 L 560,90 Q 564,82 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 630,90 Q 634,82 638,90 L 652,90 L 654,100 L 656,30 L 658,110 L 660,90 L 668,90 Q 676,75 684,90 L 700,90 Q 704,82 708,90 L 728,90 L 730,100 L 732,30 L 734,110 L 736,90 L 744,90 Q 752,75 760,90 L 770,90 Q 774,82 778,90 L 840,90 Q 844,82 848,90 L 856,90 L 858,100 L 860,30 L 862,110 L 864,90 L 872,90 Q 880,75 888,90 L 910,90 Q 914,82 918,90 L 932,90 L 934,100 L 936,30 L 938,110 L 940,90 L 948,90 Q 956,75 964,90 L 980,90 Q 984,82 988,90 L 1008,90 L 1010,100 L 1012,30 L 1014,110 L 1016,90 L 1024,90 Q 1032,75 1040,90 L 1050,90 Q 1054,82 1058,90 L 1120,90 Q 1124,82 1128,90 L 1136,90 L 1138,100 L 1140,30 L 1142,110 L 1144,90 L 1152,90 Q 1160,75 1168,90 L 1190,90 Q 1194,82 1198,90 L 1212,90 L 1214,100 L 1216,30 L 1218,110 L 1220,90 L 1228,90 Q 1236,75 1244,90 L 1260,90 Q 1264,82 1268,90 L 1288,90 L 1290,100 L 1292,30 L 1294,110 L 1296,90 L 1304,90 Q 1312,75 1320,90 L 1330,90 Q 1334,82 1338,90 L 1400,90",
+            answers: ["Second-Degree AV Block (Type I / Wenckebach)", "Progressively Lengthening PR Interval", "Dropped QRS Complex", "Distinct P-Waves Present"]
+        },
+        {
+            name: "Second-Degree AV Block (Type II / Mobitz II)",
+            path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 70,90 Q 74,82 78,90 L 86,90 L 88,100 L 90,30 L 92,110 L 94,90 L 102,90 Q 110,75 118,90 L 140,90 Q 144,82 148,90 L 156,90 L 158,100 L 160,30 L 162,110 L 164,90 L 172,90 Q 180,75 188,90 L 210,90 Q 214,82 218,90 L 280,90 Q 284,82 288,90 L 296,90 L 298,100 L 300,30 L 302,110 L 304,90 L 312,90 Q 320,75 328,90 L 350,90 Q 354,82 358,90 L 366,90 L 368,100 L 370,30 L 372,110 L 374,90 L 382,90 Q 390,75 398,90 L 420,90 Q 424,82 428,90 L 436,90 L 438,100 L 440,30 L 442,110 L 444,90 L 452,90 Q 460,75 468,90 L 490,90 Q 494,82 498,90 L 560,90 Q 564,82 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 630,90 Q 634,82 638,90 L 646,90 L 648,100 L 650,30 L 652,110 L 654,90 L 662,90 Q 670,75 678,90 L 700,90 Q 704,82 708,90 L 716,90 L 718,100 L 720,30 L 722,110 L 724,90 L 732,90 Q 740,75 748,90 L 770,90 Q 774,82 778,90 L 840,90 Q 844,82 848,90 L 856,90 L 858,100 L 860,30 L 862,110 L 864,90 L 872,90 Q 880,75 888,90 L 910,90 Q 914,82 918,90 L 926,90 L 928,100 L 930,30 L 932,110 L 934,90 L 942,90 Q 950,75 958,90 L 980,90 Q 984,82 988,90 L 996,90 L 998,100 L 1000,30 L 1002,110 L 1004,90 L 1012,90 Q 1020,75 1028,90 L 1050,90 Q 1054,82 1058,90 L 1120,90 Q 1124,82 1128,90 L 1136,90 L 1138,100 L 1140,30 L 1142,110 L 1144,90 L 1152,90 Q 1160,75 1168,90 L 1190,90 Q 1194,82 1198,90 L 1206,90 L 1208,100 L 1210,30 L 1212,110 L 1214,90 L 1222,90 Q 1230,75 1238,90 L 1260,90 Q 1264,82 1268,90 L 1276,90 L 1278,100 L 1280,30 L 1282,110 L 1284,90 L 1292,90 Q 1300,75 1308,90 L 1330,90 Q 1334,82 1338,90 L 1400,90",
+            answers: ["Second-Degree AV Block (Type II / Mobitz II)", "Constant PR Interval", "Dropped QRS Complex", "Distinct P-Waves Present"]
+        },
+        {
+            name: "Third-Degree AV Block (Complete)",
+            path: "M 0,90 L 5,90 Q 9,82 13,90 L 30,90 Q 36.4,25 42.8,130 L 46,90 L 52,90 Q 62,75 72,90 L 75,90 Q 79,82 83,90 L 145,90 Q 149,82 153,90 L 215,90 Q 219,82 223,90 L 230,90 Q 236.4,25 242.8,130 L 246,90 L 252,90 Q 262,75 272,90 L 285,90 Q 289,82 293,90 L 355,90 Q 359,82 363,90 L 425,90 Q 429,82 433,90 L 495,90 Q 499,82 503,90 L 565,90 Q 569,82 573,90 L 630,90 Q 636.4,25 642.8,130 L 646,90 L 652,90 Q 662,75 672,90 L 705,90 Q 709,82 713,90 L 775,90 Q 779,82 783,90 L 830,90 Q 836.4,25 842.8,130 L 846,90 L 852,90 Q 862,75 872,90 L 915,90 Q 919,82 923,90 L 985,90 Q 989,82 993,90 L 1030,90 Q 1036.4,25 1042.8,130 L 1046,90 L 1052,90 Q 1062,75 1072,90",
+            answers: ["Third-Degree AV Block (Complete)", "AV Dissociation", "Wide/Bizarre QRS Complexes", "Distinct P-Waves Present"]
+        },
+        {
+            name: "Atrial Flutter",
+            path: "M 0,90 L 12,80 L 20,94 L 22,100 L 24,30 L 26,110 L 28,90 L 40,90 L 52,80 L 60,94 L 62,100 L 64,30 L 66,110 L 68,90 L 80,90 L 92,80 L 100,94 L 102,100 L 104,30 L 106,110 L 108,90 L 120,90 L 132,80 L 140,94 L 142,100 L 144,30 L 146,110 L 148,90 L 160,90 L 172,80 L 180,94 L 182,100 L 184,30 L 186,110 L 188,90 L 200,90 L 212,80 L 220,94 L 222,100 L 224,30 L 226,110 L 228,90 L 240,90 L 252,80 L 260,94 L 262,100 L 264,30 L 266,110 L 268,90 L 280,90 L 292,80 L 300,94 L 302,100 L 304,30 L 306,110 L 308,90 L 320,90 L 332,80 L 340,94 L 342,100 L 344,30 L 346,110 L 348,90 L 360,90 L 372,80 L 380,94 L 382,100 L 384,30 L 386,110 L 388,90 L 400,90 L 412,80 L 420,94 L 422,100 L 424,30 L 426,110 L 428,90 L 440,90 L 452,80 L 460,94 L 462,100 L 464,30 L 466,110 L 468,90 L 480,90 L 492,80 L 500,94 L 502,100 L 504,30 L 506,110 L 508,90 L 520,90 L 532,80 L 540,94 L 542,100 L 544,30 L 546,110 L 548,90 L 560,90 L 572,80 L 580,94 L 582,100 L 584,30 L 586,110 L 588,90 L 600,90 L 612,80 L 620,94 L 622,100 L 624,30 L 626,110 L 628,90 L 640,90 L 652,80 L 660,94 L 662,100 L 664,30 L 666,110 L 668,90 L 680,90 L 692,80 L 700,94 L 702,100 L 704,30 L 706,110 L 708,90 L 720,90 L 732,80 L 740,94 L 742,100 L 744,30 L 746,110 L 748,90 L 760,90 L 772,80 L 780,94 L 782,100 L 784,30 L 786,110 L 788,90 L 800,90 L 812,80 L 820,94 L 822,100 L 824,30 L 826,110 L 828,90 L 840,90 L 852,80 L 860,94 L 862,100 L 864,30 L 866,110 L 868,90 L 880,90 L 892,80 L 900,94 L 902,100 L 904,30 L 906,110 L 908,90 L 920,90 L 932,80 L 940,94 L 942,100 L 944,30 L 946,110 L 948,90 L 960,90 L 972,80 L 980,94 L 982,100 L 984,30 L 986,110 L 988,90 L 1000,90",
+            answers: ["Atrial Flutter", "Sawtooth Flutter Waves", "Regular Rhythm", "Normal QRS Width"]
+        }
+    ];
+
+    var criteriaPool = [
+        "Normal Sinus Rhythm", "Sinus Bradycardia", "Sinus Tachycardia", "Atrial Fibrillation",
+        "Ventricular Tachycardia", "Ventricular Fibrillation", "First-Degree AV Block", "Asystole",
+        "Junctional Rhythm", "Sinus Arrhythmia", "Premature Ventricular Contraction (PVC)",
+        "Premature Atrial Contraction (PAC)", "Second-Degree AV Block (Type I / Wenckebach)",
+        "Second-Degree AV Block (Type II / Mobitz II)", "Third-Degree AV Block (Complete)", "Atrial Flutter",
+        "Regular Rhythm", "Irregularly Irregular Rhythm", "Wide/Bizarre QRS Complexes", "Normal QRS Width",
+        "Distinct P-Waves Present", "Absent P-Waves", "Prolonged PR Interval", "ST-Segment Elevation",
+        "Chaotic/Fibrillatory Baseline", "No Discernible QRS Complexes", "Phasic Variation with Respiration",
+        "No Preceding P Wave", "Compensatory Pause", "Non-Compensatory Pause",
+        "Early P Wave with Different Morphology", "Progressively Lengthening PR Interval",
+        "Dropped QRS Complex", "Constant PR Interval", "AV Dissociation", "Sawtooth Flutter Waves"
+    ];
+
+    var currentIndex = 0;
+    var sessionDeck = [];
+    var currentOptions = [];
+    var attempted = 0;
+    var score = 0;
+    var currentStreak = 0;
+    var highestStreak = 0;
+
+    var timerInterval = null;
+    var timeRemaining = 20;
+    var isTimerActive = false;
+
+    function shuffledCopy(arr) {
+        var copy = arr.slice();
+        for (var i = copy.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp;
+        }
+        return copy;
+    }
+
+    function populateSessionLengthOptions() {
+        var select = document.getElementById("session-length-select");
+        select.innerHTML = "";
+        var total = ekgDeck.length;
+        var steps = [];
+        for (var n = 5; n < total; n += 5) steps.push(n);
+        steps.push(total);
+        steps.forEach(function(n) {
+            var opt = document.createElement("option");
+            opt.value = n;
+            opt.innerText = (n === total) ? ("All (" + total + ")") : n;
+            if (n === total) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    function buildSessionDeck() {
+        var count = parseInt(document.getElementById("session-length-select").value, 10) || ekgDeck.length;
+        sessionDeck = shuffledCopy(ekgDeck).slice(0, count);
+    }
+
+    function startNewSession() {
+        buildSessionDeck();
+        currentIndex = 0;
+        attempted = 0;
+        score = 0;
+        currentStreak = 0;
+        document.getElementById("hud-score").innerText = "0/0";
+        document.getElementById("streak-counter").innerText = "0";
+        document.getElementById("streak-card").classList.remove("is-active");
+        loadTelemetryStrip();
+    }
+
+    function initLayout() {
+        populateSessionLengthOptions();
+        buildSessionDeck();
+        loadTelemetryStrip();
+        renderLeaderboard();
+    }
+
+    function loadTelemetryStrip() {
+        if (currentIndex >= sessionDeck.length) {
+            endDiagnosticRotation();
+            return;
+        }
+
+        document.getElementById("quiz-workspace").style.display = "block";
+        document.getElementById("save-score-panel").style.display = "none";
+
+        var data = sessionDeck[currentIndex];
+        document.getElementById("progress-text").innerText = "Rhythm " + (currentIndex + 1) + " of " + sessionDeck.length;
+        document.getElementById("ekg-signal").setAttribute("d", data.path);
+
+        var grid = document.getElementById("options-container");
+        grid.innerHTML = "";
+
+        var OPTIONS_PER_STRIP = 12;
+        var distractorPool = criteriaPool.filter(function(item) { return data.answers.indexOf(item) === -1; });
+        var distractors = shuffledCopy(distractorPool).slice(0, Math.max(0, OPTIONS_PER_STRIP - data.answers.length));
+        currentOptions = shuffledCopy(data.answers.concat(distractors));
+
+        currentOptions.forEach(function(item, idx) {
+            var card = document.createElement("div");
+            card.className = "option-card";
+            card.id = "card-" + idx;
+            card.innerText = item;
+            card.onclick = function() { selectCard(idx); };
+            grid.appendChild(card);
+        });
+
+        document.getElementById("summary").style.display = "none";
+        document.getElementById("alarm-banner").style.display = "none";
+        document.getElementById("btn-submit").disabled = false;
+        document.getElementById("btn-next").disabled = true;
+
+        beginTimerCountdown();
+    }
+
+    function selectCard(idx) {
+        if(document.getElementById("btn-submit").disabled) return;
+        var card = document.getElementById("card-" + idx);
+        card.classList.toggle("selected");
+    }
+
+    function toggleTimerSetting() {
+        isTimerActive = document.getElementById("timer-toggle").checked;
+        if(isTimerActive) {
+            if (!document.getElementById("btn-submit").disabled) {
+                beginTimerCountdown();
+            }
+        } else {
+            clearInterval(timerInterval);
+            var hud = document.getElementById("hud-timer");
+            hud.innerText = "OFF";
+            hud.classList.remove("timer-warn");
+        }
+    }
+
+    function updateTimerLabel() {
+        var val = document.getElementById("timer-duration").value;
+        document.getElementById("timer-label").innerHTML = '<span class="accent">' + val + '</span>s limit';
+    }
+
+    function toggleTimerSettingsPopover(e) {
+        e.stopPropagation();
+        var pop = document.getElementById("timer-settings-popover");
+        pop.hidden = !pop.hidden;
+    }
+
+    document.addEventListener("click", function(e) {
+        var pop = document.getElementById("timer-settings-popover");
+        var wrap = document.querySelector(".timer-settings-wrap");
+        if (pop && !pop.hidden && wrap && !wrap.contains(e.target)) {
+            pop.hidden = true;
+        }
+    });
+
+    function beginTimerCountdown() {
+        clearInterval(timerInterval);
+        if(!isTimerActive) return;
+
+        timeRemaining = parseInt(document.getElementById("timer-duration").value, 10);
+        var hud = document.getElementById("hud-timer");
+        hud.innerText = timeRemaining + "s";
+        hud.classList.remove("timer-warn");
+
+        timerInterval = setInterval(function() {
+            timeRemaining--;
+            hud.innerText = timeRemaining + "s";
+
+            if(timeRemaining <= 5) {
+                hud.classList.add("timer-warn");
+            }
+
+            if(timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                triggerAlarmExpiration();
+            }
+        }, 1000);
+    }
+
+    function triggerAlarmExpiration() {
+        document.getElementById("alarm-banner").style.display = "block";
+        checkDiagnostic(true);
+    }
+
+    function checkDiagnostic(forcedTimeout) {
+        var timeoutFlag = !!forcedTimeout;
+        clearInterval(timerInterval);
+        document.getElementById("btn-submit").disabled = true;
+        document.getElementById("btn-next").disabled = false;
+
+        var data = sessionDeck[currentIndex];
+        var selected = [];
+
+        currentOptions.forEach(function(item, idx) {
+            var card = document.getElementById("card-" + idx);
+
+            var isChecked = card.classList.contains("selected") && !timeoutFlag;
+            var isCorrectAnswer = data.answers.indexOf(item) !== -1;
+
+            if(isChecked) selected.push(item);
+
+            if (isChecked && isCorrectAnswer) {
+                card.className = "option-card correct-selected";
+            } else if (isChecked && !isCorrectAnswer) {
+                card.className = "option-card incorrect-selected";
+            } else if (!isChecked && isCorrectAnswer) {
+                card.className = "option-card missed-indicator";
+            }
+        });
+
+        var perfectlyMatches = !timeoutFlag &&
+            data.answers.length === selected.length &&
+            data.answers.every(function(val) { return selected.indexOf(val) !== -1; });
+
+        attempted++;
+        var streakCard = document.getElementById("streak-card");
+        if(perfectlyMatches) {
+            score++;
+            currentStreak++;
+            if(currentStreak > highestStreak) highestStreak = currentStreak;
+            document.getElementById("summary-title").innerText = "✓ INTERPRETATION VERIFIED";
+            document.getElementById("summary-title").style.color = "var(--telemetry-green)";
+        } else {
+            currentStreak = 0;
+            document.getElementById("summary-title").innerText = timeoutFlag ? "⚠ CODE BLUE: TIMEOUT FAILURE" : "✗ DIAGNOSTIC DISCREPANCY";
+            document.getElementById("summary-title").style.color = "var(--telemetry-red)";
+        }
+
+        streakCard.classList.toggle("is-active", currentStreak > 0);
+        document.getElementById("streak-counter").innerText = currentStreak;
+        document.getElementById("hud-score").innerText = score + "/" + attempted;
+
+        document.getElementById("summary-desc").innerHTML = "<strong>Target Indicators:</strong> " + data.answers.join(", ");
+        document.getElementById("summary").style.display = "block";
+    }
+
+    function advanceStrip() {
+        currentIndex++;
+        loadTelemetryStrip();
+    }
+
+    function endDiagnosticRotation() {
+        document.getElementById("quiz-workspace").style.display = "none";
+        document.getElementById("save-score-panel").style.display = "block";
+    }
+
+    async function getScoreboard() {
+        try {
+            var result = await window.storage.get('telemetry_board', true);
+            return result ? JSON.parse(result.value) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    async function commitScore() {
+        var saveBtn = document.getElementById("btn-save-score");
+        var nameInput = document.getElementById("player-name").value.trim() || "Anonymous Player";
+        var newRecord = {
+            name: nameInput,
+            score: score + "/" + attempted,
+            date: new Date().toLocaleDateString()
+        };
+
+        saveBtn.disabled = true;
+        saveBtn.innerText = "Saving...";
+
+        try {
+            var currentBoard = await getScoreboard();
+            currentBoard.push(newRecord);
+            await window.storage.set('telemetry_board', JSON.stringify(currentBoard), true);
+        } catch (e) {
+            console.error("Failed to save score:", e);
+        }
+
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Save Score";
+
+        await renderLeaderboard();
+
+        currentIndex = 0;
+        buildSessionDeck();
+        attempted = 0;
+        score = 0;
+        currentStreak = 0;
+        document.getElementById("hud-score").innerText = "0/0";
+        document.getElementById("streak-counter").innerText = "0";
+        document.getElementById("streak-card").classList.remove("is-active");
+        loadTelemetryStrip();
+    }
+
+    async function clearScoreboard() {
+        var ok = confirm("Clear the entire score board? This removes every saved score for everyone using this app and can't be undone.");
+        if (!ok) return;
+
+        var clearBtn = document.querySelector(".clear-board-btn");
+        clearBtn.disabled = true;
+        clearBtn.innerText = "Clearing...";
+
+        try {
+            await window.storage.delete('telemetry_board', true);
+        } catch (e) {
+            try {
+                await window.storage.set('telemetry_board', JSON.stringify([]), true);
+            } catch (e2) {
+                console.error("Failed to clear scoreboard:", e2);
+            }
+        }
+
+        clearBtn.disabled = false;
+        clearBtn.innerText = "Clear";
+        await renderLeaderboard();
+    }
+
+    var rankMedals = ["🥇", "🥈", "🥉"];
+
+    async function renderLeaderboard() {
+        var loadingEl = document.getElementById("leaderboard-loading");
+        loadingEl.style.display = "block";
+
+        var board = await getScoreboard();
+        board.sort(function(a, b) {
+            var valA = parseInt(a.score.split("/")[0], 10);
+            var valB = parseInt(b.score.split("/")[0], 10);
+            return valB - valA;
+        });
+
+        var tbody = document.getElementById("leaderboard-rows");
+        tbody.innerHTML = board.length === 0 ? '<tr><td colspan="3" style="color:var(--text-muted); text-align:center;">No records documented.</td></tr>' : "";
+
+        board.forEach(function(row, i) {
+            var tr = document.createElement("tr");
+            var rankPrefix = rankMedals[i] ? rankMedals[i] + " " : "";
+            tr.innerHTML = '<td><strong>' + rankPrefix + row.name + '</strong></td><td><span style="color:var(--telemetry-cyan)">' + row.score + '</span></td><td style="color:var(--text-muted)">' + row.date + '</td>';
+            tbody.appendChild(tr);
+        });
+
+        loadingEl.style.display = "none";
+    }
+
+    function exportPerformanceTXT() {
+        var name = document.getElementById("player-name").value.trim() || "Anonymous Player";
+        var timerConfig = isTimerActive ? document.getElementById("timer-duration").value + " seconds" : "Disabled";
+        var percentText = attempted > 0 ? Math.round((score / attempted) * 100) + "%" : "N/A";
+
+        var reportContent =
+"==================================================\n" +
+"        TELEMETRY MASTER CRITICAL CARE REPORT\n" +
+"==================================================\n" +
+"Date Evaluated      : " + new Date().toLocaleString() + "\n" +
+"Clinician Name     : " + name + "\n" +
+"Final Diagnostic Score: " + score + " / " + attempted + " (" + percentText + ")\n" +
+"Peak Correct Streak : " + highestStreak + " Rounds\n" +
+"Interval Timer Mode : " + timerConfig + "\n" +
+"--------------------------------------------------\n" +
+"Status: Completed Telemetry Rotation Cycle.\n" +
+"Verification Token: " + Math.random().toString(36).substring(2, 10).toUpperCase() + "\n" +
+"==================================================";
+
+        var blob = new Blob([reportContent], { type: "text/plain" });
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Telemetry_Report_" + name.replace(/\s+/g, '_') + ".txt";
+        link.click();
+    }
+
+    window.onload = initLayout;
+</script>
+</body>
+</html>
