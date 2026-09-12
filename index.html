@@ -19,6 +19,7 @@
             --telemetry-gold: #f2b544;
             --telemetry-green: #34d399;
             --telemetry-red: #f0475f;
+            --telemetry-violet: #a78bfa;
         }
 
         * { box-sizing: border-box; }
@@ -49,7 +50,7 @@
             margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: flex-start;
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -70,14 +71,16 @@
             font-size: 13px;
         }
 
-        .rotation-label { font-size: 12px; color: var(--text-muted); text-align: right; }
+        .rotation-label { font-size: 12px; color: var(--text-muted); text-align: right; margin-bottom: 3px; }
         .rotation-value {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 19px; font-weight: 600; text-align: right;
         }
+        .rotation-row {
+            display: flex; align-items: baseline; justify-content: flex-end; gap: 10px; flex-wrap: wrap;
+        }
         .session-picker {
-            display: flex; align-items: center; justify-content: flex-end; gap: 6px;
-            margin-top: 4px;
+            display: flex; align-items: center; gap: 6px;
         }
         .session-picker label { font-size: 11px; color: var(--text-muted); }
         .session-picker select {
@@ -86,20 +89,54 @@
             cursor: pointer;
         }
 
+        .icon-btn {
+            background: var(--panel-alt); border: 1px solid var(--border-color); border-radius: 8px;
+            font-size: 15px; padding: 5px 9px; cursor: pointer; line-height: 1; transition: border-color .15s ease;
+        }
+        .icon-btn:hover { border-color: var(--telemetry-cyan); }
+
+        /* ---------- Stats modal ---------- */
+        .stats-modal-backdrop {
+            display: none; position: fixed; inset: 0; background: rgba(3,7,17,0.75);
+            align-items: center; justify-content: center; z-index: 100; padding: 20px;
+        }
+        .stats-modal {
+            background: var(--panel-dark); border: 1px solid var(--border-color); border-radius: 14px;
+            padding: 22px; max-width: 460px; width: 100%; max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+        }
+        .stats-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .stats-modal-header h3 { font-family: 'Space Grotesk', sans-serif; color: var(--telemetry-cyan); margin: 0; font-size: 17px; }
+        .stats-close-btn { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; line-height: 1; }
+        .stats-close-btn:hover { color: var(--text-main); }
+        .stats-metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+        .stats-metric {
+            background: var(--panel-alt); border: 1px solid var(--border-color); border-radius: 10px;
+            padding: 12px; text-align: center;
+        }
+        .stats-metric-value { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; color: var(--telemetry-cyan); }
+        .stats-metric-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+        .stats-table-title { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+        .stats-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        .stats-table th { text-align: left; color: var(--text-muted); padding: 5px; font-weight: 500; }
+        .stats-table td { padding: 7px 5px; border-bottom: 1px solid #1c2439; }
+        .stats-table tr.needs-practice td:last-child { color: var(--telemetry-red); font-weight: 600; }
+
         /* ---------- Top row: player name + streak ---------- */
         .top-row {
             display: flex; gap: 10px; margin-bottom: 16px; align-items: stretch; flex-wrap: wrap;
         }
 
         .player-field {
-            flex: 1; min-width: 180px; display: flex; align-items: center; gap: 8px;
-            background: var(--panel-alt); border: 1px solid var(--border-color);
-            border-radius: 10px; padding: 0 14px;
+            flex: 1; min-width: 140px; display: flex; align-items: center; gap: 7px;
+            background: transparent; border: none; border-bottom: 1px solid var(--border-color);
+            border-radius: 0; padding: 0 2px; transition: border-color .15s ease;
         }
-        .player-field .field-icon { font-size: 15px; }
+        .player-field:focus-within { border-bottom-color: var(--telemetry-cyan); }
+        .player-field .field-icon { font-size: 13px; opacity: 0.55; }
         .player-field input {
             flex: 1; background: transparent; border: none; color: var(--text-main);
-            font-family: 'Inter', sans-serif; font-size: 14px; padding: 11px 0; outline: none;
+            font-family: 'Inter', sans-serif; font-size: 13px; padding: 8px 0; outline: none;
         }
         .player-field input::placeholder { color: var(--text-muted); }
 
@@ -184,15 +221,33 @@
             position: absolute; right: 0; top: calc(100% + 8px);
             background: var(--panel-dark); border: 1px solid var(--border-color);
             border-radius: 10px; padding: 12px 14px; box-shadow: 0 12px 24px rgba(0,0,0,.45);
-            display: flex; align-items: center; gap: 8px; z-index: 30; white-space: nowrap;
+            display: flex; flex-direction: column; gap: 8px; z-index: 30; min-width: 190px;
         }
         .timer-settings-popover[hidden] { display: none; }
-        .timer-settings-popover input[type="range"] { width: 120px; accent-color: var(--telemetry-cyan); cursor: pointer; }
-        .timer-settings-popover span { font-size: 12px; color: var(--text-muted); }
+        .timer-settings-popover .settings-section-label {
+            font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .timer-settings-popover .settings-row { display: flex; align-items: center; gap: 8px; }
+        .timer-settings-popover input[type="range"] { flex: 1; accent-color: var(--telemetry-cyan); cursor: pointer; }
+        .timer-settings-popover span { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
         .timer-settings-popover .accent { color: var(--telemetry-cyan); font-weight: 600; }
+        .timer-settings-popover .settings-divider { height: 1px; background: var(--border-color); margin: 2px 0; }
+        .timer-settings-popover .settings-buttons { justify-content: space-between; }
+        .timer-settings-popover .settings-buttons .icon-btn { flex: 1; font-size: 12px; padding: 6px 8px; }
 
         /* ---------- Diagnosis pills ---------- */
         .section-label { margin-bottom: 10px; font-weight: 600; color: var(--text-muted); font-size: 14px; }
+
+        #action-workspace .section-label { color: var(--telemetry-violet); }
+        #action-options-container .option-card.selected { border-color: var(--telemetry-violet); background: rgba(167,139,250,0.14); }
+        #action-options-container .option-card.action-correct { border-color: var(--telemetry-green) !important; background: rgba(52,211,153,0.14) !important; }
+        #action-options-container .option-card.action-correct::after { content: "✓"; margin-left: 6px; color: var(--telemetry-green); font-weight: 700; }
+        #action-options-container .option-card.action-incorrect { border-color: var(--telemetry-red) !important; background: rgba(240,71,95,0.14) !important; text-decoration: line-through; opacity: 0.85; }
+        #action-options-container .option-card.action-incorrect::after { content: "✗"; margin-left: 6px; color: var(--telemetry-red); font-weight: 700; }
+
+        .clinical-disclaimer { font-size: 11px; color: var(--text-muted); margin-top: 14px; font-style: italic; line-height: 1.4; }
+
+        #action-summary { border-left-color: var(--telemetry-violet); display: none; }
 
         .options-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 20px; }
 
@@ -272,11 +327,12 @@
             <p class="subtitle">Advanced Clinical Rhythm & Indicator Assessment Lab</p>
         </div>
         <div>
-            <div class="rotation-label">Current Rotation</div>
-            <div class="rotation-value" id="progress-text">Rhythm 1 of 8</div>
-            <div class="session-picker">
-                <label for="session-length-select">Rhythms:</label>
-                <select id="session-length-select" onchange="startNewSession()"></select>
+            <div class="rotation-row">
+                <div class="rotation-value" id="progress-text">Rhythm 1 of 8</div>
+                <div class="session-picker">
+                    <label for="session-length-select">Rhythms:</label>
+                    <select id="session-length-select" onchange="startNewSession()"></select>
+                </div>
             </div>
         </div>
     </header>
@@ -325,10 +381,18 @@
             <span class="status-icon">⏱</span>
             <span class="status-value" id="hud-timer">OFF</span>
             <div class="timer-settings-wrap">
-                <button type="button" class="gear-btn" onclick="toggleTimerSettingsPopover(event)" aria-label="Timer settings">⚙</button>
+                <button type="button" class="gear-btn" onclick="toggleTimerSettingsPopover(event)" aria-label="Settings">⚙</button>
                 <div class="timer-settings-popover" id="timer-settings-popover" hidden>
-                    <input type="range" id="timer-duration" min="5" max="60" value="20" oninput="updateTimerLabel()">
-                    <span id="timer-label"><span class="accent">20</span>s limit</span>
+                    <div class="settings-section-label">Timer Interval</div>
+                    <div class="settings-row">
+                        <input type="range" id="timer-duration" min="5" max="60" value="20" oninput="updateTimerLabel()">
+                        <span id="timer-label"><span class="accent">20</span>s limit</span>
+                    </div>
+                    <div class="settings-divider"></div>
+                    <div class="settings-row settings-buttons">
+                        <button type="button" id="sound-toggle-btn" class="icon-btn" onclick="toggleSoundMute()">🔊 Sound</button>
+                        <button type="button" class="icon-btn" onclick="openStatsModal()">📊 Stats</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -343,12 +407,25 @@
 
                 <div class="action-bar">
                     <button id="btn-submit" class="btn btn-primary" onclick="checkDiagnostic()">Submit Diagnosis</button>
-                    <button id="btn-next" class="btn btn-secondary" onclick="advanceStrip()" disabled>Next Strip &raquo;</button>
                 </div>
 
                 <div id="summary" class="summary-box">
                     <div id="summary-title" style="font-weight: bold; font-size: 16px; margin-bottom: 5px; font-family: 'Space Grotesk', sans-serif;"></div>
                     <div id="summary-desc" style="font-size: 14px; color: var(--text-muted); line-height: 1.4;"></div>
+                    <div id="summary-explanation" style="font-size: 13px; color: var(--text-main); line-height: 1.5; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color);"></div>
+                </div>
+
+                <div id="action-workspace" style="display: none;">
+                    <div class="section-label" style="margin-top: 20px;">What's the recommended next action?</div>
+                    <div id="action-options-container" class="options-grid"></div>
+                    <div class="action-bar">
+                        <button id="btn-submit-action" class="btn btn-primary" onclick="checkAction()">Submit Action</button>
+                        <button id="btn-next" class="btn btn-secondary" onclick="advanceStrip()" disabled>Next Strip &raquo;</button>
+                    </div>
+                    <div id="action-summary" class="summary-box">
+                        <div id="action-summary-title" style="font-weight: bold; font-size: 16px; font-family: 'Space Grotesk', sans-serif;"></div>
+                    </div>
+                    <div class="clinical-disclaimer">Educational review only — always follow current ACLS guidelines and your institution's protocols. Real management depends on patient stability and context not captured in a strip alone.</div>
                 </div>
             </div>
 
@@ -382,132 +459,222 @@
     </div>
 </div>
 
+<div class="stats-modal-backdrop" id="stats-modal-backdrop" onclick="if(event.target===this) closeStatsModal()">
+    <div class="stats-modal">
+        <div class="stats-modal-header">
+            <h3>📊 My Stats</h3>
+            <button type="button" class="stats-close-btn" onclick="closeStatsModal()" aria-label="Close">×</button>
+        </div>
+        <div class="stats-metrics-grid" id="stats-overall"></div>
+        <div class="stats-table-title">By rhythm (lowest accuracy first)</div>
+        <table class="stats-table">
+            <thead><tr><th>Rhythm</th><th>Attempts</th><th>Accuracy</th></tr></thead>
+            <tbody id="stats-rhythm-rows"></tbody>
+        </table>
+    </div>
+</div>
+
 <script>
     var ekgDeck = [
         {
             name: "Normal Sinus Rhythm",
             path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,82 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 160,90 Q 164,82 168,90 L 176,90 L 178,100 L 180,30 L 182,110 L 184,90 L 192,90 Q 200,75 208,90 L 240,90 Q 244,82 248,90 L 256,90 L 258,100 L 260,30 L 262,110 L 264,90 L 272,90 Q 280,75 288,90 L 320,90 Q 324,82 328,90 L 336,90 L 338,100 L 340,30 L 342,110 L 344,90 L 352,90 Q 360,75 368,90 L 400,90 Q 404,82 408,90 L 416,90 L 418,100 L 420,30 L 422,110 L 424,90 L 432,90 Q 440,75 448,90 L 480,90 Q 484,82 488,90 L 496,90 L 498,100 L 500,30 L 502,110 L 504,90 L 512,90 Q 520,75 528,90 L 560,90 Q 564,82 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 640,90 Q 644,82 648,90 L 656,90 L 658,100 L 660,30 L 662,110 L 664,90 L 672,90 Q 680,75 688,90 L 720,90 Q 724,82 728,90 L 736,90 L 738,100 L 740,30 L 742,110 L 744,90 L 752,90 Q 760,75 768,90 L 800,90 Q 804,82 808,90 L 816,90 L 818,100 L 820,30 L 822,110 L 824,90 L 832,90 Q 840,75 848,90 L 880,90 Q 884,82 888,90 L 896,90 L 898,100 L 900,30 L 902,110 L 904,90 L 912,90 Q 920,75 928,90 L 960,90 Q 964,82 968,90 L 976,90 L 978,100 L 980,30 L 982,110 L 984,90 L 992,90 Q 1000,75 1008,90 L 1040,90",
-            answers: ["Normal Sinus Rhythm", "Regular Rhythm", "Normal QRS Width", "Distinct P-Waves Present"]
+            answers: ["Normal Sinus Rhythm", "Regular Rhythm", "Normal QRS Width", "Distinct P-Waves Present"],
+            explanation: "Impulses originate normally from the SA node at a healthy rate, so every beat has a P wave, a normal PR interval, and a narrow QRS in a steady, predictable pattern.",
+            bpm: 75,
+            action: "No Intervention Needed / Routine Monitoring"
         },
         {
             name: "Sinus Bradycardia with ST-Elevation",
             path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,80 L 32,80 Q 40,70 48,90 L 150,90 Q 154,82 158,90 L 166,90 L 168,100 L 170,30 L 172,110 L 174,80 L 182,80 Q 190,70 198,90 L 300,90 Q 304,82 308,90 L 316,90 L 318,100 L 320,30 L 322,110 L 324,80 L 332,80 Q 340,70 348,90 L 450,90 Q 454,82 458,90 L 466,90 L 468,100 L 470,30 L 472,110 L 474,80 L 482,80 Q 490,70 498,90 L 600,90 Q 604,82 608,90 L 616,90 L 618,100 L 620,30 L 622,110 L 624,80 L 632,80 Q 640,70 648,90 L 750,90 Q 754,82 758,90 L 766,90 L 768,100 L 770,30 L 772,110 L 774,80 L 782,80 Q 790,70 798,90 L 900,90 Q 904,82 908,90 L 916,90 L 918,100 L 920,30 L 922,110 L 924,80 L 932,80 Q 940,70 948,90 L 1050,90",
-            answers: ["Sinus Bradycardia", "Regular Rhythm", "ST-Segment Elevation", "Distinct P-Waves Present"]
+            answers: ["Sinus Bradycardia", "Regular Rhythm", "ST-Segment Elevation", "Distinct P-Waves Present"],
+            explanation: "The SA node is firing slower than normal, and the elevated ST segment signals acute injury to the heart muscle -- the STEMI is the urgent finding here, not the slow rate itself.",
+            bpm: 40,
+            action: "Activate STEMI Protocol / Cardiac Cath Lab"
         },
         {
             name: "Sinus Tachycardia",
             path: "M 0,90 Q 3,83 6,90 L 12,90 L 14,100 L 16,30 L 18,110 L 20,90 L 24,90 Q 30,77 36,90 L 50,90 Q 53,83 56,90 L 62,90 L 64,100 L 66,30 L 68,110 L 70,90 L 74,90 Q 80,77 86,90 L 100,90 Q 103,83 106,90 L 112,90 L 114,100 L 116,30 L 118,110 L 120,90 L 124,90 Q 130,77 136,90 L 150,90 Q 153,83 156,90 L 162,90 L 164,100 L 166,30 L 168,110 L 170,90 L 174,90 Q 180,77 186,90 L 200,90 Q 203,83 206,90 L 212,90 L 214,100 L 216,30 L 218,110 L 220,90 L 224,90 Q 230,77 236,90 L 250,90 Q 253,83 256,90 L 262,90 L 264,100 L 266,30 L 268,110 L 270,90 L 274,90 Q 280,77 286,90 L 300,90 Q 303,83 306,90 L 312,90 L 314,100 L 316,30 L 318,110 L 320,90 L 324,90 Q 330,77 336,90 L 350,90 Q 353,83 356,90 L 362,90 L 364,100 L 366,30 L 368,110 L 370,90 L 374,90 Q 380,77 386,90 L 400,90 Q 403,83 406,90 L 412,90 L 414,100 L 416,30 L 418,110 L 420,90 L 424,90 Q 430,77 436,90 L 450,90 Q 453,83 456,90 L 462,90 L 464,100 L 466,30 L 468,110 L 470,90 L 474,90 Q 480,77 486,90 L 500,90 Q 503,83 506,90 L 512,90 L 514,100 L 516,30 L 518,110 L 520,90 L 524,90 Q 530,77 536,90 L 550,90 Q 553,83 556,90 L 562,90 L 564,100 L 566,30 L 568,110 L 570,90 L 574,90 Q 580,77 586,90 L 600,90 Q 603,83 606,90 L 612,90 L 614,100 L 616,30 L 618,110 L 620,90 L 624,90 Q 630,77 636,90 L 650,90 Q 653,83 656,90 L 662,90 L 664,100 L 666,30 L 668,110 L 670,90 L 674,90 Q 680,77 686,90 L 700,90 Q 703,83 706,90 L 712,90 L 714,100 L 716,30 L 718,110 L 720,90 L 724,90 Q 730,77 736,90 L 750,90 Q 753,83 756,90 L 762,90 L 764,100 L 766,30 L 768,110 L 770,90 L 774,90 Q 780,77 786,90 L 800,90 Q 803,83 806,90 L 812,90 L 814,100 L 816,30 L 818,110 L 820,90 L 824,90 Q 830,77 836,90 L 850,90 Q 853,83 856,90 L 862,90 L 864,100 L 866,30 L 868,110 L 870,90 L 874,90 Q 880,77 886,90 L 900,90 Q 903,83 906,90 L 912,90 L 914,100 L 916,30 L 918,110 L 920,90 L 924,90 Q 930,77 936,90 L 950,90 Q 953,83 956,90 L 962,90 L 964,100 L 966,30 L 968,110 L 970,90 L 974,90 Q 980,77 986,90 L 1000,90",
-            answers: ["Sinus Tachycardia", "Regular Rhythm", "Normal QRS Width", "Distinct P-Waves Present"]
+            answers: ["Sinus Tachycardia", "Regular Rhythm", "Normal QRS Width", "Distinct P-Waves Present"],
+            explanation: "The SA node is simply firing faster than usual, often reactively (pain, fever, dehydration, anxiety) -- the P-QRS-T relationship stays completely normal, just sped up.",
+            bpm: 120,
+            action: "Treat Underlying Cause (Fever, Pain, Hypovolemia, etc.)"
         },
         {
             name: "Atrial Fibrillation",
             path: "M 0,90 Q 5,87 10,92 L 13,102 L 17,20 L 22,112 L 26,90 T 45,92 L 48,102 L 52,20 L 57,112 L 61,90 T 95,92 L 98,102 L 102,20 L 107,112 L 111,90 T 135,92 L 138,102 L 142,20 L 147,112 L 151,90 T 215,92 L 218,102 L 222,20 L 227,112 L 231,90 T 265,92 L 268,102 L 272,20 L 277,112 L 281,90 T 340,92 L 343,102 L 347,20 L 352,112 L 356,90 T 410,92 L 413,102 L 417,20 L 422,112 L 426,90 T 445,92 L 448,102 L 452,20 L 457,112 L 461,90 T 520,92 L 523,102 L 527,20 L 532,112 L 536,90 T 605,92 L 608,102 L 612,20 L 617,112 L 621,90 T 650,92 L 653,102 L 657,20 L 662,112 L 666,90 T 745,92 L 748,102 L 752,20 L 757,112 L 761,90 T 815,92 L 818,102 L 822,20 L 827,112 L 831,90 T 860,92 L 863,102 L 867,20 L 872,112 L 876,90 T 935,92 L 938,102 L 942,20 L 947,112 L 951,90 T 1000,90",
-            answers: ["Atrial Fibrillation", "Irregularly Irregular Rhythm", "Chaotic/Fibrillatory Baseline", "Absent P-Waves"]
+            answers: ["Atrial Fibrillation", "Irregularly Irregular Rhythm", "Chaotic/Fibrillatory Baseline", "Absent P-Waves"],
+            explanation: "Multiple chaotic atrial foci fire at once instead of one organized SA node signal, so there's no true P wave -- just a fibrillating baseline -- and the AV node lets impulses through unpredictably, producing an irregularly irregular rhythm.",
+            bpm: 0,
+            action: "Rate Control ± Anticoagulation (Cardioversion if Unstable)"
         },
         {
             name: "Ventricular Tachycardia (Monomorphic)",
             path: "M 0,90 Q 20,20 40,150 Q 60,20 80,150 Q 100,20 120,150 Q 140,20 160,150 Q 180,20 200,150 Q 220,20 240,150 Q 260,20 280,150 Q 300,20 320,150 Q 340,20 360,150 Q 380,20 400,150 Q 420,20 440,150 Q 460,20 480,150 Q 500,20 520,150 Q 540,20 560,150 Q 580,20 600,150 Q 620,20 640,150 Q 660,20 680,150 Q 700,20 720,150 Q 740,20 760,150 Q 780,20 800,150 Q 820,20 840,150 Q 860,20 880,150 Q 900,20 920,150 Q 940,20 960,150 Q 980,20 1000,150",
-            answers: ["Ventricular Tachycardia", "Wide/Bizarre QRS Complexes", "Regular Rhythm", "Absent P-Waves"]
+            answers: ["Ventricular Tachycardia", "Wide/Bizarre QRS Complexes", "Regular Rhythm", "Absent P-Waves"],
+            explanation: "An ectopic ventricular focus is firing rapidly and repetitively with the same shape each time (monomorphic), bypassing the normal conduction system entirely, which is why the QRS is wide and no P waves are visible.",
+            bpm: 150,
+            action: "Synchronized Cardioversion (Unstable) or Amiodarone (Stable)"
         },
         {
             name: "Ventricular Fibrillation (Coarse)",
             path: "M 0,90 Q 5,40 12,130 Q 20,20 28,140 Q 32,60 40,110 Q 52,30 60,160 Q 68,70 75,120 Q 84,25 92,145 Q 105,40 115,135 Q 122,50 130,150 Q 142,30 150,120 Q 162,60 170,140 Q 182,20 190,155 Q 205,45 212,130 Q 224,35 235,145 Q 242,60 250,110 Q 262,20 274,160 Q 282,50 295,125 Q 312,30 324,140 Q 335,65 344,115 Q 355,40 366,150 Q 378,35 390,130 Q 402,70 415,110 Q 424,25 435,160 Q 444,55 455,135 Q 468,30 480,140 Q 492,60 505,120 Q 518,20 530,155 Q 544,45 556,130 Q 568,35 580,145 Q 592,60 604,110 Q 618,20 630,160 Q 644,50 656,125 Q 670,30 682,140 Q 694,65 706,115 Q 718,40 730,150 Q 744,35 756,130 Q 768,70 782,110 Q 794,25 806,160 Q 818,55 830,135 Q 844,30 856,140 Q 868,60 882,120 Q 894,20 906,155 Q 920,45 932,130 Q 944,35 956,145 Q 968,60 982,110 Q 994,20 1000,140",
-            answers: ["Ventricular Fibrillation", "Chaotic/Fibrillatory Baseline", "Absent P-Waves", "No Discernible QRS Complexes"]
+            answers: ["Ventricular Fibrillation", "Chaotic/Fibrillatory Baseline", "Absent P-Waves", "No Discernible QRS Complexes"],
+            explanation: "The ventricles are quivering chaotically with no organized electrical activity at all -- there's no discernible QRS, no pulse, and no cardiac output. This is a shockable arrest rhythm.",
+            bpm: 0,
+            action: "Defibrillate (Unsynchronized) + CPR + Epinephrine"
         },
         {
             name: "First-Degree AV Block",
             path: "M 0,90 Q 4,82 8,90 L 28,90 L 30,100 L 32,30 L 34,110 L 36,90 L 44,90 Q 52,75 60,90 L 80,90 Q 84,82 88,90 L 108,90 L 110,100 L 112,30 L 114,110 L 116,90 L 124,90 Q 132,75 140,90 L 160,90 Q 164,82 168,90 L 188,90 L 190,100 L 192,30 L 194,110 L 196,90 L 204,90 Q 212,75 220,90 L 240,90 Q 244,82 248,90 L 268,90 L 270,100 L 272,30 L 274,110 L 276,90 L 284,90 Q 292,75 300,90 L 320,90 Q 324,82 328,90 L 348,90 L 350,100 L 352,30 L 354,110 L 356,90 L 364,90 Q 372,75 380,90 L 400,90 Q 404,82 408,90 L 428,90 L 430,100 L 432,30 L 434,110 L 436,90 L 444,90 Q 452,75 460,90 L 480,90 Q 484,82 488,90 L 508,90 L 510,100 L 512,30 L 514,110 L 516,90 L 524,90 Q 532,75 540,90 L 560,90 Q 564,82 568,90 L 588,90 L 590,100 L 592,30 L 594,110 L 596,90 L 604,90 Q 612,75 620,90 L 640,90 Q 644,82 648,90 L 668,90 L 670,100 L 672,30 L 674,110 L 676,90 L 684,90 Q 692,75 700,90 L 720,90 Q 724,82 728,90 L 748,90 L 750,100 L 752,30 L 754,110 L 756,90 L 764,90 Q 772,75 780,90 L 800,90 Q 804,82 808,90 L 828,90 L 830,100 L 832,30 L 834,110 L 836,90 L 844,90 Q 852,75 860,90 L 880,90 Q 884,82 888,90 L 908,90 L 910,100 L 912,30 L 914,110 L 916,90 L 924,90 Q 932,75 940,90 L 960,90 Q 964,82 968,90 L 988,90 L 990,100 L 992,30 L 994,110 L 996,90 L 1004,90 Q 1012,75 1020,90 L 1040,90",
-            answers: ["First-Degree AV Block", "Prolonged PR Interval", "Regular Rhythm", "Distinct P-Waves Present"]
+            answers: ["First-Degree AV Block", "Prolonged PR Interval", "Regular Rhythm", "Distinct P-Waves Present"],
+            explanation: "Conduction through the AV node is simply delayed, so every P wave still eventually conducts to a QRS -- just with a longer-than-normal PR interval (over 0.20s). Nothing is actually blocked.",
+            bpm: 75,
+            action: "No Intervention Needed / Monitor"
         },
         {
             name: "Asystole (Flatline)",
             path: "M 0,90 L 120,90 Q 125,86 130,94 T 140,90 L 410,90 Q 415,87 420,93 T 430,90 L 740,90 Q 745,86 750,94 T 760,90 L 1000,90",
-            answers: ["Asystole", "Absent P-Waves", "No Discernible QRS Complexes"]
+            answers: ["Asystole", "Absent P-Waves", "No Discernible QRS Complexes"],
+            explanation: "There is no organized electrical activity anywhere in the heart -- no P waves, no QRS complexes, just a flat line. This is a non-shockable arrest rhythm.",
+            bpm: 0,
+            action: "CPR + Epinephrine (Non-Shockable Rhythm)"
         },
         {
             name: "Junctional Rhythm",
             path: "M 0,90 L 20,90 L 22,100 L 24,30 L 26,110 L 28,90 L 36,90 Q 44,75 52,90 L 110,90 L 130,90 L 132,100 L 134,30 L 136,110 L 138,90 L 146,90 Q 154,75 162,90 L 220,90 L 240,90 L 242,100 L 244,30 L 246,110 L 248,90 L 256,90 Q 264,75 272,90 L 330,90 L 350,90 L 352,100 L 354,30 L 356,110 L 358,90 L 366,90 Q 374,75 382,90 L 440,90 L 460,90 L 462,100 L 464,30 L 466,110 L 468,90 L 476,90 Q 484,75 492,90 L 550,90 L 570,90 L 572,100 L 574,30 L 576,110 L 578,90 L 586,90 Q 594,75 602,90 L 660,90 L 680,90 L 682,100 L 684,30 L 686,110 L 688,90 L 696,90 Q 704,75 712,90 L 770,90 L 790,90 L 792,100 L 794,30 L 796,110 L 798,90 L 806,90 Q 814,75 822,90 L 880,90 L 900,90 L 902,100 L 904,30 L 906,110 L 908,90 L 916,90 Q 924,75 932,90 L 990,90 L 1010,90 L 1012,100 L 1014,30 L 1016,110 L 1018,90 L 1026,90 Q 1034,75 1042,90 L 1100,90 L 1120,90 L 1122,100 L 1124,30 L 1126,110 L 1128,90 L 1136,90 Q 1144,75 1152,90 L 1210,90",
-            answers: ["Junctional Rhythm", "Absent P-Waves", "Normal QRS Width", "Regular Rhythm"]
+            answers: ["Junctional Rhythm", "Absent P-Waves", "Normal QRS Width", "Regular Rhythm"],
+            explanation: "When the SA node fails to pace, the AV junction takes over as a backup pacemaker. It conducts normally down to the ventricles (narrow QRS) but doesn't produce a visible upright P wave the way the SA node does.",
+            bpm: 55,
+            action: "Treat Underlying Cause / Atropine if Symptomatic"
         },
         {
             name: "Sinus Arrhythmia",
             path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,82 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 175.588,90 Q 179.588,82 183.588,90 L 191.588,90 L 193.588,100 L 195.588,30 L 197.588,110 L 199.588,90 L 207.588,90 Q 215.588,75 223.588,90 L 271.177,90 Q 275.177,82 279.177,90 L 287.177,90 L 289.177,100 L 291.177,30 L 293.177,110 L 295.177,90 L 303.177,90 Q 311.177,75 319.177,90 L 351.177,90 Q 355.177,82 359.177,90 L 367.177,90 L 369.177,100 L 371.177,30 L 373.177,110 L 375.177,90 L 383.177,90 Q 391.177,75 399.177,90 L 415.588,90 Q 419.588,82 423.588,90 L 431.588,90 L 433.588,100 L 435.588,30 L 437.588,110 L 439.588,90 L 447.588,90 Q 455.588,75 463.588,90 L 480,90 Q 484,82 488,90 L 496,90 L 498,100 L 500,30 L 502,110 L 504,90 L 512,90 Q 520,75 528,90 L 560,90 Q 564,82 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 655.588,90 Q 659.588,82 663.588,90 L 671.588,90 L 673.588,100 L 675.588,30 L 677.588,110 L 679.588,90 L 687.588,90 Q 695.588,75 703.588,90 L 751.177,90 Q 755.177,82 759.177,90 L 767.177,90 L 769.177,100 L 771.177,30 L 773.177,110 L 775.177,90 L 783.177,90 Q 791.177,75 799.177,90 L 831.177,90 Q 835.177,82 839.177,90 L 847.177,90 L 849.177,100 L 851.177,30 L 853.177,110 L 855.177,90 L 863.177,90 Q 871.177,75 879.177,90 L 895.588,90 Q 899.588,82 903.588,90 L 911.588,90 L 913.588,100 L 915.588,30 L 917.588,110 L 919.588,90 L 927.588,90 Q 935.588,75 943.588,90 L 960,90 Q 964,82 968,90 L 976,90 L 978,100 L 980,30 L 982,110 L 984,90 L 992,90 Q 1000,75 1008,90 L 1040,90 Q 1044,82 1048,90 L 1056,90 L 1058,100 L 1060,30 L 1062,110 L 1064,90 L 1072,90 Q 1080,75 1088,90 L 1135.59,90",
-            answers: ["Sinus Arrhythmia", "Phasic Variation with Respiration", "Distinct P-Waves Present", "Normal QRS Width"]
+            answers: ["Sinus Arrhythmia", "Phasic Variation with Respiration", "Distinct P-Waves Present", "Normal QRS Width"],
+            explanation: "The SA node's rate subtly speeds up and slows down in sync with breathing (vagal tone changes with inspiration/expiration) -- P waves and PR intervals stay completely normal, only the R-R interval drifts.",
+            bpm: 75,
+            action: "No Intervention Needed (Normal Variant)"
         },
         {
             name: "Premature Ventricular Contraction (PVC)",
             path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,82 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 136,90 Q 142.4,20 148.8,125 L 152,90 L 240,90 Q 244,82 248,90 L 256,90 L 258,100 L 260,30 L 262,110 L 264,90 L 272,90 Q 280,75 288,90 L 320,90 Q 324,82 328,90 L 336,90 L 338,100 L 340,30 L 342,110 L 344,90 L 352,90 Q 360,75 368,90 L 400,90 Q 404,82 408,90 L 416,90 L 418,100 L 420,30 L 422,110 L 424,90 L 432,90 Q 440,75 448,90 L 480,90 Q 484,82 488,90 L 496,90 L 498,100 L 500,30 L 502,110 L 504,90 L 512,90 Q 520,75 528,90 L 560,90 Q 564,82 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 640,90 Q 644,82 648,90 L 656,90 L 658,100 L 660,30 L 662,110 L 664,90 L 672,90 Q 680,75 688,90 L 720,90 Q 724,82 728,90 L 736,90 L 738,100 L 740,30 L 742,110 L 744,90 L 752,90 Q 760,75 768,90 L 800,90 Q 804,82 808,90 L 816,90 L 818,100 L 820,30 L 822,110 L 824,90 L 832,90 Q 840,75 848,90 L 880,90 Q 884,82 888,90 L 896,90 L 898,100 L 900,30 L 902,110 L 904,90 L 912,90 Q 920,75 928,90 L 960,90 Q 964,82 968,90 L 976,90 L 978,100 L 980,30 L 982,110 L 984,90 L 992,90 Q 1000,75 1008,90 L 1040,90 Q 1044,82 1048,90 L 1056,90 L 1058,100 L 1060,30 L 1062,110 L 1064,90 L 1072,90 Q 1080,75 1088,90 L 1120,90",
-            answers: ["Premature Ventricular Contraction (PVC)", "Wide/Bizarre QRS Complexes", "No Preceding P Wave", "Compensatory Pause"]
+            answers: ["Premature Ventricular Contraction (PVC)", "Wide/Bizarre QRS Complexes", "No Preceding P Wave", "Compensatory Pause"],
+            explanation: "An irritable ventricular focus fires early, before the next sinus beat is due, producing a wide bizarre QRS with no preceding P wave. Because the sinus node isn't reset, a full compensatory pause follows.",
+            bpm: 75,
+            action: "Treat Underlying Cause (Electrolytes, Ischemia) — Usually No Treatment if Isolated"
         },
         {
             name: "Premature Atrial Contraction (PAC)",
             path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,82 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 136,90 Q 139,96 142,90 L 146,90 L 148,100 L 150,30 L 152,110 L 154,90 L 162,90 Q 170,75 178,90 L 216,90 Q 220,82 224,90 L 232,90 L 234,100 L 236,30 L 238,110 L 240,90 L 248,90 Q 256,75 264,90 L 296,90 Q 300,82 304,90 L 312,90 L 314,100 L 316,30 L 318,110 L 320,90 L 328,90 Q 336,75 344,90 L 376,90 Q 380,82 384,90 L 392,90 L 394,100 L 396,30 L 398,110 L 400,90 L 408,90 Q 416,75 424,90 L 456,90 Q 460,82 464,90 L 472,90 L 474,100 L 476,30 L 478,110 L 480,90 L 488,90 Q 496,75 504,90 L 536,90 Q 540,82 544,90 L 552,90 L 554,100 L 556,30 L 558,110 L 560,90 L 568,90 Q 576,75 584,90 L 616,90 Q 620,82 624,90 L 632,90 L 634,100 L 636,30 L 638,110 L 640,90 L 648,90 Q 656,75 664,90 L 696,90 Q 700,82 704,90 L 712,90 L 714,100 L 716,30 L 718,110 L 720,90 L 728,90 Q 736,75 744,90 L 776,90 Q 780,82 784,90 L 792,90 L 794,100 L 796,30 L 798,110 L 800,90 L 808,90 Q 816,75 824,90 L 856,90 Q 860,82 864,90 L 872,90 L 874,100 L 876,30 L 878,110 L 880,90 L 888,90 Q 896,75 904,90 L 936,90 Q 940,82 944,90 L 952,90 L 954,100 L 956,30 L 958,110 L 960,90 L 968,90 Q 976,75 984,90 L 1016,90 Q 1020,82 1024,90 L 1032,90 L 1034,100 L 1036,30 L 1038,110 L 1040,90 L 1048,90 Q 1056,75 1064,90 L 1096,90",
-            answers: ["Premature Atrial Contraction (PAC)", "Early P Wave with Different Morphology", "Normal QRS Width", "Non-Compensatory Pause"]
+            answers: ["Premature Atrial Contraction (PAC)", "Early P Wave with Different Morphology", "Normal QRS Width", "Non-Compensatory Pause"],
+            explanation: "An ectopic atrial focus fires early with a differently-shaped P wave, but conduction through the AV node and ventricles is normal. Because it does reset the sinus node, the pause afterward is non-compensatory (shorter than a PVC's).",
+            bpm: 75,
+            action: "No Intervention Needed (Usually Benign)"
         },
         {
             name: "Second-Degree AV Block (Type I / Wenckebach)",
             path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 70,90 Q 74,82 78,90 L 92,90 L 94,100 L 96,30 L 98,110 L 100,90 L 108,90 Q 116,75 124,90 L 140,90 Q 144,82 148,90 L 168,90 L 170,100 L 172,30 L 174,110 L 176,90 L 184,90 Q 192,75 200,90 L 210,90 Q 214,82 218,90 L 280,90 Q 284,82 288,90 L 296,90 L 298,100 L 300,30 L 302,110 L 304,90 L 312,90 Q 320,75 328,90 L 350,90 Q 354,82 358,90 L 372,90 L 374,100 L 376,30 L 378,110 L 380,90 L 388,90 Q 396,75 404,90 L 420,90 Q 424,82 428,90 L 448,90 L 450,100 L 452,30 L 454,110 L 456,90 L 464,90 Q 472,75 480,90 L 490,90 Q 494,82 498,90 L 560,90 Q 564,82 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 630,90 Q 634,82 638,90 L 652,90 L 654,100 L 656,30 L 658,110 L 660,90 L 668,90 Q 676,75 684,90 L 700,90 Q 704,82 708,90 L 728,90 L 730,100 L 732,30 L 734,110 L 736,90 L 744,90 Q 752,75 760,90 L 770,90 Q 774,82 778,90 L 840,90 Q 844,82 848,90 L 856,90 L 858,100 L 860,30 L 862,110 L 864,90 L 872,90 Q 880,75 888,90 L 910,90 Q 914,82 918,90 L 932,90 L 934,100 L 936,30 L 938,110 L 940,90 L 948,90 Q 956,75 964,90 L 980,90 Q 984,82 988,90 L 1008,90 L 1010,100 L 1012,30 L 1014,110 L 1016,90 L 1024,90 Q 1032,75 1040,90 L 1050,90 Q 1054,82 1058,90 L 1120,90 Q 1124,82 1128,90 L 1136,90 L 1138,100 L 1140,30 L 1142,110 L 1144,90 L 1152,90 Q 1160,75 1168,90 L 1190,90 Q 1194,82 1198,90 L 1212,90 L 1214,100 L 1216,30 L 1218,110 L 1220,90 L 1228,90 Q 1236,75 1244,90 L 1260,90 Q 1264,82 1268,90 L 1288,90 L 1290,100 L 1292,30 L 1294,110 L 1296,90 L 1304,90 Q 1312,75 1320,90 L 1330,90 Q 1334,82 1338,90 L 1400,90",
-            answers: ["Second-Degree AV Block (Type I / Wenckebach)", "Progressively Lengthening PR Interval", "Dropped QRS Complex", "Distinct P-Waves Present"]
+            answers: ["Second-Degree AV Block (Type I / Wenckebach)", "Progressively Lengthening PR Interval", "Dropped QRS Complex", "Distinct P-Waves Present"],
+            explanation: "The AV node fatigues a little more with each beat -- the PR interval lengthens progressively -- until one impulse fails to conduct entirely and a QRS is dropped. Then the cycle resets and repeats.",
+            bpm: 60,
+            action: "Usually Observation / Atropine if Symptomatic"
         },
         {
             name: "Second-Degree AV Block (Type II / Mobitz II)",
             path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 70,90 Q 74,82 78,90 L 86,90 L 88,100 L 90,30 L 92,110 L 94,90 L 102,90 Q 110,75 118,90 L 140,90 Q 144,82 148,90 L 156,90 L 158,100 L 160,30 L 162,110 L 164,90 L 172,90 Q 180,75 188,90 L 210,90 Q 214,82 218,90 L 280,90 Q 284,82 288,90 L 296,90 L 298,100 L 300,30 L 302,110 L 304,90 L 312,90 Q 320,75 328,90 L 350,90 Q 354,82 358,90 L 366,90 L 368,100 L 370,30 L 372,110 L 374,90 L 382,90 Q 390,75 398,90 L 420,90 Q 424,82 428,90 L 436,90 L 438,100 L 440,30 L 442,110 L 444,90 L 452,90 Q 460,75 468,90 L 490,90 Q 494,82 498,90 L 560,90 Q 564,82 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 630,90 Q 634,82 638,90 L 646,90 L 648,100 L 650,30 L 652,110 L 654,90 L 662,90 Q 670,75 678,90 L 700,90 Q 704,82 708,90 L 716,90 L 718,100 L 720,30 L 722,110 L 724,90 L 732,90 Q 740,75 748,90 L 770,90 Q 774,82 778,90 L 840,90 Q 844,82 848,90 L 856,90 L 858,100 L 860,30 L 862,110 L 864,90 L 872,90 Q 880,75 888,90 L 910,90 Q 914,82 918,90 L 926,90 L 928,100 L 930,30 L 932,110 L 934,90 L 942,90 Q 950,75 958,90 L 980,90 Q 984,82 988,90 L 996,90 L 998,100 L 1000,30 L 1002,110 L 1004,90 L 1012,90 Q 1020,75 1028,90 L 1050,90 Q 1054,82 1058,90 L 1120,90 Q 1124,82 1128,90 L 1136,90 L 1138,100 L 1140,30 L 1142,110 L 1144,90 L 1152,90 Q 1160,75 1168,90 L 1190,90 Q 1194,82 1198,90 L 1206,90 L 1208,100 L 1210,30 L 1212,110 L 1214,90 L 1222,90 Q 1230,75 1238,90 L 1260,90 Q 1264,82 1268,90 L 1276,90 L 1278,100 L 1280,30 L 1282,110 L 1284,90 L 1292,90 Q 1300,75 1308,90 L 1330,90 Q 1334,82 1338,90 L 1400,90",
-            answers: ["Second-Degree AV Block (Type II / Mobitz II)", "Constant PR Interval", "Dropped QRS Complex", "Distinct P-Waves Present"]
+            answers: ["Second-Degree AV Block (Type II / Mobitz II)", "Constant PR Interval", "Dropped QRS Complex", "Distinct P-Waves Present"],
+            explanation: "Conduction fails suddenly and unpredictably below the AV node, dropping a QRS without any warning -- the PR interval stays constant right up until the dropped beat. This is more dangerous than Wenckebach because it can progress to complete block without warning.",
+            bpm: 60,
+            action: "Transcutaneous Pacing / Prepare for Permanent Pacemaker"
         },
         {
             name: "Third-Degree AV Block (Complete)",
             path: "M 0,90 L 5,90 Q 9,82 13,90 L 30,90 Q 36.4,25 42.8,130 L 46,90 L 52,90 Q 62,75 72,90 L 75,90 Q 79,82 83,90 L 145,90 Q 149,82 153,90 L 215,90 Q 219,82 223,90 L 230,90 Q 236.4,25 242.8,130 L 246,90 L 252,90 Q 262,75 272,90 L 285,90 Q 289,82 293,90 L 355,90 Q 359,82 363,90 L 425,90 Q 429,82 433,90 L 495,90 Q 499,82 503,90 L 565,90 Q 569,82 573,90 L 630,90 Q 636.4,25 642.8,130 L 646,90 L 652,90 Q 662,75 672,90 L 705,90 Q 709,82 713,90 L 775,90 Q 779,82 783,90 L 830,90 Q 836.4,25 842.8,130 L 846,90 L 852,90 Q 862,75 872,90 L 915,90 Q 919,82 923,90 L 985,90 Q 989,82 993,90 L 1030,90 Q 1036.4,25 1042.8,130 L 1046,90 L 1052,90 Q 1062,75 1072,90",
-            answers: ["Third-Degree AV Block (Complete)", "AV Dissociation", "Wide/Bizarre QRS Complexes", "Distinct P-Waves Present"]
+            answers: ["Third-Degree AV Block (Complete)", "AV Dissociation", "Wide/Bizarre QRS Complexes", "Distinct P-Waves Present"],
+            explanation: "No impulses from the atria make it through to the ventricles at all -- the atria and ventricles are being paced independently by two completely unrelated pacemakers, so P waves and QRS complexes have no fixed relationship to each other.",
+            bpm: 0,
+            action: "Immediate Transcutaneous Pacing / Permanent Pacemaker"
         },
         {
             name: "Atrial Flutter",
             path: "M 0,90 L 12,80 L 20,94 L 22,100 L 24,30 L 26,110 L 28,90 L 40,90 L 52,80 L 60,94 L 62,100 L 64,30 L 66,110 L 68,90 L 80,90 L 92,80 L 100,94 L 102,100 L 104,30 L 106,110 L 108,90 L 120,90 L 132,80 L 140,94 L 142,100 L 144,30 L 146,110 L 148,90 L 160,90 L 172,80 L 180,94 L 182,100 L 184,30 L 186,110 L 188,90 L 200,90 L 212,80 L 220,94 L 222,100 L 224,30 L 226,110 L 228,90 L 240,90 L 252,80 L 260,94 L 262,100 L 264,30 L 266,110 L 268,90 L 280,90 L 292,80 L 300,94 L 302,100 L 304,30 L 306,110 L 308,90 L 320,90 L 332,80 L 340,94 L 342,100 L 344,30 L 346,110 L 348,90 L 360,90 L 372,80 L 380,94 L 382,100 L 384,30 L 386,110 L 388,90 L 400,90 L 412,80 L 420,94 L 422,100 L 424,30 L 426,110 L 428,90 L 440,90 L 452,80 L 460,94 L 462,100 L 464,30 L 466,110 L 468,90 L 480,90 L 492,80 L 500,94 L 502,100 L 504,30 L 506,110 L 508,90 L 520,90 L 532,80 L 540,94 L 542,100 L 544,30 L 546,110 L 548,90 L 560,90 L 572,80 L 580,94 L 582,100 L 584,30 L 586,110 L 588,90 L 600,90 L 612,80 L 620,94 L 622,100 L 624,30 L 626,110 L 628,90 L 640,90 L 652,80 L 660,94 L 662,100 L 664,30 L 666,110 L 668,90 L 680,90 L 692,80 L 700,94 L 702,100 L 704,30 L 706,110 L 708,90 L 720,90 L 732,80 L 740,94 L 742,100 L 744,30 L 746,110 L 748,90 L 760,90 L 772,80 L 780,94 L 782,100 L 784,30 L 786,110 L 788,90 L 800,90 L 812,80 L 820,94 L 822,100 L 824,30 L 826,110 L 828,90 L 840,90 L 852,80 L 860,94 L 862,100 L 864,30 L 866,110 L 868,90 L 880,90 L 892,80 L 900,94 L 902,100 L 904,30 L 906,110 L 908,90 L 920,90 L 932,80 L 940,94 L 942,100 L 944,30 L 946,110 L 948,90 L 960,90 L 972,80 L 980,94 L 982,100 L 984,30 L 986,110 L 988,90 L 1000,90",
-            answers: ["Atrial Flutter", "Sawtooth Flutter Waves", "Regular Rhythm", "Normal QRS Width"]
+            answers: ["Atrial Flutter", "Sawtooth Flutter Waves", "Regular Rhythm", "Normal QRS Width"],
+            explanation: "A single atrial focus fires in a rapid, organized re-entrant circuit (~300/min), producing the classic sawtooth flutter waves, while the AV node protectively blocks most of them -- here every 2nd impulse conducts.",
+            bpm: 150,
+            action: "Rate Control / Synchronized Cardioversion (if Unstable)"
         },
         {
             name: "Supraventricular Tachycardia (SVT)",
             path: "M 0,90 Q 4,90 8,90 L 10,100 L 12,30 L 14,110 L 16,90 L 18,90 Q 23,75 28,90 L 40,90 Q 44,90 48,90 L 50,100 L 52,30 L 54,110 L 56,90 L 58,90 Q 63,75 68,90 L 80,90 Q 84,90 88,90 L 90,100 L 92,30 L 94,110 L 96,90 L 98,90 Q 103,75 108,90 L 120,90 Q 124,90 128,90 L 130,100 L 132,30 L 134,110 L 136,90 L 138,90 Q 143,75 148,90 L 160,90 Q 164,90 168,90 L 170,100 L 172,30 L 174,110 L 176,90 L 178,90 Q 183,75 188,90 L 200,90 Q 204,90 208,90 L 210,100 L 212,30 L 214,110 L 216,90 L 218,90 Q 223,75 228,90 L 240,90 Q 244,90 248,90 L 250,100 L 252,30 L 254,110 L 256,90 L 258,90 Q 263,75 268,90 L 280,90 Q 284,90 288,90 L 290,100 L 292,30 L 294,110 L 296,90 L 298,90 Q 303,75 308,90 L 320,90 Q 324,90 328,90 L 330,100 L 332,30 L 334,110 L 336,90 L 338,90 Q 343,75 348,90 L 360,90 Q 364,90 368,90 L 370,100 L 372,30 L 374,110 L 376,90 L 378,90 Q 383,75 388,90 L 400,90 Q 404,90 408,90 L 410,100 L 412,30 L 414,110 L 416,90 L 418,90 Q 423,75 428,90 L 440,90 Q 444,90 448,90 L 450,100 L 452,30 L 454,110 L 456,90 L 458,90 Q 463,75 468,90 L 480,90 Q 484,90 488,90 L 490,100 L 492,30 L 494,110 L 496,90 L 498,90 Q 503,75 508,90 L 520,90 Q 524,90 528,90 L 530,100 L 532,30 L 534,110 L 536,90 L 538,90 Q 543,75 548,90 L 560,90 Q 564,90 568,90 L 570,100 L 572,30 L 574,110 L 576,90 L 578,90 Q 583,75 588,90 L 600,90 Q 604,90 608,90 L 610,100 L 612,30 L 614,110 L 616,90 L 618,90 Q 623,75 628,90 L 640,90 Q 644,90 648,90 L 650,100 L 652,30 L 654,110 L 656,90 L 658,90 Q 663,75 668,90 L 680,90 Q 684,90 688,90 L 690,100 L 692,30 L 694,110 L 696,90 L 698,90 Q 703,75 708,90 L 720,90 Q 724,90 728,90 L 730,100 L 732,30 L 734,110 L 736,90 L 738,90 Q 743,75 748,90 L 760,90 Q 764,90 768,90 L 770,100 L 772,30 L 774,110 L 776,90 L 778,90 Q 783,75 788,90 L 800,90 Q 804,90 808,90 L 810,100 L 812,30 L 814,110 L 816,90 L 818,90 Q 823,75 828,90 L 840,90 Q 844,90 848,90 L 850,100 L 852,30 L 854,110 L 856,90 L 858,90 Q 863,75 868,90 L 880,90 Q 884,90 888,90 L 890,100 L 892,30 L 894,110 L 896,90 L 898,90 Q 903,75 908,90 L 920,90 Q 924,90 928,90 L 930,100 L 932,30 L 934,110 L 936,90 L 938,90 Q 943,75 948,90 L 960,90 Q 964,90 968,90 L 970,100 L 972,30 L 974,110 L 976,90 L 978,90 Q 983,75 988,90 L 1000,90 Q 1004,90 1008,90 L 1010,100 L 1012,30 L 1014,110 L 1016,90 L 1018,90 Q 1023,75 1028,90 L 1040,90 Q 1044,90 1048,90 L 1050,100 L 1052,30 L 1054,110 L 1056,90 L 1058,90 Q 1063,75 1068,90 L 1080,90",
-            answers: ["Supraventricular Tachycardia (SVT)", "Regular Rhythm", "Normal QRS Width", "Absent P-Waves"]
+            answers: ["Supraventricular Tachycardia (SVT)", "Regular Rhythm", "Normal QRS Width", "Absent P-Waves"],
+            explanation: "A re-entrant circuit above the ventricles is firing very rapidly and regularly. Conduction through the ventricles is normal (narrow QRS), but the rate is so fast the P wave gets buried in the preceding T wave.",
+            bpm: 150,
+            action: "Vagal Maneuvers -> Adenosine (Stable) / Cardioversion (Unstable)"
         },
         {
             name: "Torsades de Pointes",
             path: "M 0,90 Q 10.4,45.0 22.1,135.0 L 26,90 Q 36.4,25.7 48.1,115.7 L 52,90 Q 62.4,15.5 74.1,105.5 L 78,90 Q 88.4,19.0 100.1,109.0 L 104,90 Q 114.4,34.7 126.1,124.7 L 130,90 Q 140.4,55.3 152.1,145.3 L 156,90 Q 166.4,71.0 178.1,161.0 L 182,90 Q 192.4,74.5 204.1,164.5 L 208,90 Q 218.4,64.3 230.1,154.3 L 234,90 Q 244.4,45.0 256.1,135.0 L 260,90 Q 270.4,25.7 282.1,115.7 L 286,90 Q 296.4,15.5 308.1,105.5 L 312,90 Q 322.4,19.0 334.1,109.0 L 338,90 Q 348.4,34.7 360.1,124.7 L 364,90 Q 374.4,55.3 386.1,145.3 L 390,90 Q 400.4,71.0 412.1,161.0 L 416,90 Q 426.4,74.5 438.1,164.5 L 442,90 Q 452.4,64.3 464.1,154.3 L 468,90 Q 478.4,45.0 490.1,135.0 L 494,90 Q 504.4,25.7 516.1,115.7 L 520,90 Q 530.4,15.5 542.1,105.5 L 546,90 Q 556.4,19.0 568.1,109.0 L 572,90 Q 582.4,34.7 594.1,124.7 L 598,90 Q 608.4,55.3 620.1,145.3 L 624,90 Q 634.4,71.0 646.1,161.0 L 650,90 Q 660.4,74.5 672.1,164.5 L 676,90 Q 686.4,64.3 698.1,154.3 L 702,90 Q 712.4,45.0 724.1,135.0 L 728,90 Q 738.4,25.7 750.1,115.7 L 754,90 Q 764.4,15.5 776.1,105.5 L 780,90 Q 790.4,19.0 802.1,109.0 L 806,90 Q 816.4,34.7 828.1,124.7 L 832,90 Q 842.4,55.3 854.1,145.3 L 858,90 Q 868.4,71.0 880.1,161.0 L 884,90 Q 894.4,74.5 906.1,164.5 L 910,90 Q 920.4,64.3 932.1,154.3 L 936,90 Q 946.4,45.0 958.1,135.0 L 962,90 Q 972.4,25.7 984.1,115.7 L 988,90 Q 998.4,15.5 1010.1,105.5 L 1014,90 Q 1024.4,19.0 1036.1,109.0 L 1040,90",
-            answers: ["Torsades de Pointes", "Wide/Bizarre QRS Complexes"]
+            answers: ["Torsades de Pointes", "Wide/Bizarre QRS Complexes"],
+            explanation: "This is a polymorphic form of VT where the QRS axis and amplitude twist around the baseline -- classically triggered by a prolonged QT interval and low magnesium.",
+            bpm: 220,
+            action: "IV Magnesium Sulfate"
         },
         {
             name: "Multifocal Atrial Tachycardia (MAT)",
             path: "M 0,90 Q 3.5,82 7,90 L 17,90 L 19,100 L 21,30 L 23,110 L 25,90 L 31,90 Q 37,78 43,90 L 45,90 Q 48.5,86 52,90 L 62,90 L 64,100 L 66,30 L 68,110 L 70,90 L 76,90 Q 82,78 88,90 L 105,90 Q 108.5,96 112,90 L 122,90 L 124,100 L 126,30 L 128,110 L 130,90 L 136,90 Q 142,78 148,90 L 155,90 Q 158.5,82 162,90 L 172,90 L 174,100 L 176,30 L 178,110 L 180,90 L 186,90 Q 192,78 198,90 L 225,90 Q 228.5,86 232,90 L 242,90 L 244,100 L 246,30 L 248,110 L 250,90 L 256,90 Q 262,78 268,90 L 280,90 Q 283.5,96 287,90 L 297,90 L 299,100 L 301,30 L 303,110 L 305,90 L 311,90 Q 317,78 323,90 Q 323.5,82 327,90 L 337,90 L 339,100 L 341,30 L 343,110 L 345,90 L 351,90 Q 357,78 363,90 L 385,90 Q 388.5,86 392,90 L 402,90 L 404,100 L 406,30 L 408,110 L 410,90 L 416,90 Q 422,78 428,90 L 430,90 Q 433.5,96 437,90 L 447,90 L 449,100 L 451,30 L 453,110 L 455,90 L 461,90 Q 467,78 473,90 L 490,90 Q 493.5,82 497,90 L 507,90 L 509,100 L 511,30 L 513,110 L 515,90 L 521,90 Q 527,78 533,90 L 540,90 Q 543.5,86 547,90 L 557,90 L 559,100 L 561,30 L 563,110 L 565,90 L 571,90 Q 577,78 583,90 L 610,90 Q 613.5,96 617,90 L 627,90 L 629,100 L 631,30 L 633,110 L 635,90 L 641,90 Q 647,78 653,90 L 665,90 Q 668.5,82 672,90 L 682,90 L 684,100 L 686,30 L 688,110 L 690,90 L 696,90 Q 702,78 708,90 Q 708.5,86 712,90 L 722,90 L 724,100 L 726,30 L 728,110 L 730,90 L 736,90 Q 742,78 748,90 L 770,90 Q 773.5,96 777,90 L 787,90 L 789,100 L 791,30 L 793,110 L 795,90 L 801,90 Q 807,78 813,90 L 815,90 Q 818.5,82 822,90 L 832,90 L 834,100 L 836,30 L 838,110 L 840,90 L 846,90 Q 852,78 858,90 L 875,90 Q 878.5,86 882,90 L 892,90 L 894,100 L 896,30 L 898,110 L 900,90 L 906,90 Q 912,78 918,90 L 925,90 Q 928.5,96 932,90 L 942,90 L 944,100 L 946,30 L 948,110 L 950,90 L 956,90 Q 962,78 968,90 L 995,90 Q 998.5,82 1002,90 L 1012,90 L 1014,100 L 1016,30 L 1018,110 L 1020,90 L 1026,90 Q 1032,78 1038,90 L 1050,90 Q 1053.5,86 1057,90 L 1067,90 L 1069,100 L 1071,30 L 1073,110 L 1075,90 L 1081,90 Q 1087,78 1093,90",
-            answers: ["Multifocal Atrial Tachycardia (MAT)", "Multiple P-Wave Morphologies", "Irregularly Irregular Rhythm"]
+            answers: ["Multifocal Atrial Tachycardia (MAT)", "Multiple P-Wave Morphologies", "Irregularly Irregular Rhythm"],
+            explanation: "Several different atrial foci are competing to pace the heart, so you'll see at least 3 distinct P-wave shapes with an irregular rate -- it's often mistaken for AFib but the P waves here are organized, just inconsistent in origin.",
+            bpm: 110,
+            action: "Treat Underlying Cause (e.g., COPD, Hypoxia)"
         },
         {
             name: "Ectopic Atrial Rhythm",
             path: "M 0,90 Q 4,96 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,96 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 160,90 Q 164,96 168,90 L 176,90 L 178,100 L 180,30 L 182,110 L 184,90 L 192,90 Q 200,75 208,90 L 240,90 Q 244,96 248,90 L 256,90 L 258,100 L 260,30 L 262,110 L 264,90 L 272,90 Q 280,75 288,90 L 320,90 Q 324,96 328,90 L 336,90 L 338,100 L 340,30 L 342,110 L 344,90 L 352,90 Q 360,75 368,90 L 400,90 Q 404,96 408,90 L 416,90 L 418,100 L 420,30 L 422,110 L 424,90 L 432,90 Q 440,75 448,90 L 480,90 Q 484,96 488,90 L 496,90 L 498,100 L 500,30 L 502,110 L 504,90 L 512,90 Q 520,75 528,90 L 560,90 Q 564,96 568,90 L 576,90 L 578,100 L 580,30 L 582,110 L 584,90 L 592,90 Q 600,75 608,90 L 640,90 Q 644,96 648,90 L 656,90 L 658,100 L 660,30 L 662,110 L 664,90 L 672,90 Q 680,75 688,90 L 720,90 Q 724,96 728,90 L 736,90 L 738,100 L 740,30 L 742,110 L 744,90 L 752,90 Q 760,75 768,90 L 800,90 Q 804,96 808,90 L 816,90 L 818,100 L 820,30 L 822,110 L 824,90 L 832,90 Q 840,75 848,90 L 880,90 Q 884,96 888,90 L 896,90 L 898,100 L 900,30 L 902,110 L 904,90 L 912,90 Q 920,75 928,90 L 960,90 Q 964,96 968,90 L 976,90 L 978,100 L 980,30 L 982,110 L 984,90 L 992,90 Q 1000,75 1008,90 L 1040,90 Q 1044,96 1048,90 L 1056,90 L 1058,100 L 1060,30 L 1062,110 L 1064,90 L 1072,90 Q 1080,75 1088,90 L 1120,90",
-            answers: ["Ectopic Atrial Rhythm"]
+            answers: ["Ectopic Atrial Rhythm"],
+            explanation: "A pacemaker site outside the SA node -- but still within the atria -- is driving the rhythm, so the P wave has an abnormal axis/shape even though the rate and conduction are otherwise normal.",
+            bpm: 75,
+            action: "No Intervention Needed / Monitor"
         },
         {
             name: "Idioventricular Rhythm",
             path: "M 0,90 L 40,90 Q 46.4,20 52.8,125 L 56,90 L 62,90 Q 72,75 82,90 L 200,90 L 240,90 Q 246.4,20 252.8,125 L 256,90 L 262,90 Q 272,75 282,90 L 400,90 L 440,90 Q 446.4,20 452.8,125 L 456,90 L 462,90 Q 472,75 482,90 L 600,90 L 640,90 Q 646.4,20 652.8,125 L 656,90 L 662,90 Q 672,75 682,90 L 800,90 L 840,90 Q 846.4,20 852.8,125 L 856,90 L 862,90 Q 872,75 882,90 L 1000,90 L 1040,90 Q 1046.4,20 1052.8,125 L 1056,90 L 1062,90 Q 1072,75 1082,90 L 1200,90",
-            answers: ["Idioventricular Rhythm", "Wide/Bizarre QRS Complexes", "Absent P-Waves"]
+            answers: ["Idioventricular Rhythm", "Wide/Bizarre QRS Complexes", "Absent P-Waves"],
+            explanation: "This is the heart's last-resort backup pacemaker -- the ventricular muscle itself firing very slowly (20-40/min) when everything above it has failed, producing wide QRS complexes with no P waves.",
+            bpm: 30,
+            action: "Treat Underlying Cause / Consider Pacing"
         },
         {
             name: "Wolff-Parkinson-White (WPW) Pattern",
             path: "M 0,90 Q 4,82 8,90 Q 9.8,75 11.6,65 L 14.6,35 L 17.6,108 L 20,90 L 26,90 Q 34,75 42,90 L 80,90 Q 84,82 88,90 Q 89.8,75 91.6,65 L 94.6,35 L 97.6,108 L 100,90 L 106,90 Q 114,75 122,90 L 160,90 Q 164,82 168,90 Q 169.8,75 171.6,65 L 174.6,35 L 177.6,108 L 180,90 L 186,90 Q 194,75 202,90 L 240,90 Q 244,82 248,90 Q 249.8,75 251.6,65 L 254.6,35 L 257.6,108 L 260,90 L 266,90 Q 274,75 282,90 L 320,90 Q 324,82 328,90 Q 329.8,75 331.6,65 L 334.6,35 L 337.6,108 L 340,90 L 346,90 Q 354,75 362,90 L 400,90 Q 404,82 408,90 Q 409.8,75 411.6,65 L 414.6,35 L 417.6,108 L 420,90 L 426,90 Q 434,75 442,90 L 480,90 Q 484,82 488,90 Q 489.8,75 491.6,65 L 494.6,35 L 497.6,108 L 500,90 L 506,90 Q 514,75 522,90 L 560,90 Q 564,82 568,90 Q 569.8,75 571.6,65 L 574.6,35 L 577.6,108 L 580,90 L 586,90 Q 594,75 602,90 L 640,90 Q 644,82 648,90 Q 649.8,75 651.6,65 L 654.6,35 L 657.6,108 L 660,90 L 666,90 Q 674,75 682,90 L 720,90 Q 724,82 728,90 Q 729.8,75 731.6,65 L 734.6,35 L 737.6,108 L 740,90 L 746,90 Q 754,75 762,90 L 800,90 Q 804,82 808,90 Q 809.8,75 811.6,65 L 814.6,35 L 817.6,108 L 820,90 L 826,90 Q 834,75 842,90 L 880,90 Q 884,82 888,90 Q 889.8,75 891.6,65 L 894.6,35 L 897.6,108 L 900,90 L 906,90 Q 914,75 922,90 L 960,90 Q 964,82 968,90 Q 969.8,75 971.6,65 L 974.6,35 L 977.6,108 L 980,90 L 986,90 Q 994,75 1002,90 L 1040,90 Q 1044,82 1048,90 Q 1049.8,75 1051.6,65 L 1054.6,35 L 1057.6,108 L 1060,90 L 1066,90 Q 1074,75 1082,90 L 1120,90",
-            answers: ["Wolff-Parkinson-White (WPW) Pattern", "Short PR Interval", "Delta Wave (Slurred QRS Upstroke)"]
+            answers: ["Wolff-Parkinson-White (WPW) Pattern", "Short PR Interval", "Delta Wave (Slurred QRS Upstroke)"],
+            explanation: "An extra electrical pathway (accessory bundle) bypasses the AV node's normal delay, pre-exciting the ventricle early -- producing a short PR interval and a slurred initial QRS upstroke called a delta wave.",
+            bpm: 75,
+            action: "Avoid AV Nodal Blockers if AFib Present / Refer for Ablation"
         },
         {
             name: "Sinus Pause (Sinus Arrest)",
             path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,82 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 160,90 Q 164,82 168,90 L 176,90 L 178,100 L 180,30 L 182,110 L 184,90 L 192,90 Q 200,75 208,90 L 240,90 L 368,90 Q 372,82 376,90 L 384,90 L 386,100 L 388,30 L 390,110 L 392,90 L 400,90 Q 408,75 416,90 L 448,90 Q 452,82 456,90 L 464,90 L 466,100 L 468,30 L 470,110 L 472,90 L 480,90 Q 488,75 496,90 L 528,90 Q 532,82 536,90 L 544,90 L 546,100 L 548,30 L 550,110 L 552,90 L 560,90 Q 568,75 576,90 L 608,90 Q 612,82 616,90 L 624,90 L 626,100 L 628,30 L 630,110 L 632,90 L 640,90 Q 648,75 656,90 L 688,90 Q 692,82 696,90 L 704,90 L 706,100 L 708,30 L 710,110 L 712,90 L 720,90 Q 728,75 736,90 L 768,90 Q 772,82 776,90 L 784,90 L 786,100 L 788,30 L 790,110 L 792,90 L 800,90 Q 808,75 816,90 L 848,90 Q 852,82 856,90 L 864,90 L 866,100 L 868,30 L 870,110 L 872,90 L 880,90 Q 888,75 896,90 L 928,90 Q 932,82 936,90 L 944,90 L 946,100 L 948,30 L 950,110 L 952,90 L 960,90 Q 968,75 976,90 L 1008,90 Q 1012,82 1016,90 L 1024,90 L 1026,100 L 1028,30 L 1030,110 L 1032,90 L 1040,90 Q 1048,75 1056,90 L 1088,90",
-            answers: ["Sinus Pause (Sinus Arrest)"]
+            answers: ["Sinus Pause (Sinus Arrest)"],
+            explanation: "The SA node simply fails to fire for one cycle -- there's no P wave, QRS, or T wave at all during the pause -- before sinus activity resumes on its own.",
+            bpm: 75,
+            action: "Atropine if Symptomatic / Consider Pacemaker if Recurrent"
         },
         {
             name: "Accelerated Idioventricular Rhythm (AIVR)",
             path: "M 0,90 L 15,90 Q 21.4,20 27.8,125 L 31,90 L 37,90 Q 47,75 57,90 L 100,90 L 115,90 Q 121.4,20 127.8,125 L 131,90 L 137,90 Q 147,75 157,90 L 200,90 L 215,90 Q 221.4,20 227.8,125 L 231,90 L 237,90 Q 247,75 257,90 L 300,90 L 315,90 Q 321.4,20 327.8,125 L 331,90 L 337,90 Q 347,75 357,90 L 400,90 L 415,90 Q 421.4,20 427.8,125 L 431,90 L 437,90 Q 447,75 457,90 L 500,90 L 515,90 Q 521.4,20 527.8,125 L 531,90 L 537,90 Q 547,75 557,90 L 600,90 L 615,90 Q 621.4,20 627.8,125 L 631,90 L 637,90 Q 647,75 657,90 L 700,90 L 715,90 Q 721.4,20 727.8,125 L 731,90 L 737,90 Q 747,75 757,90 L 800,90 L 815,90 Q 821.4,20 827.8,125 L 831,90 L 837,90 Q 847,75 857,90 L 900,90 L 915,90 Q 921.4,20 927.8,125 L 931,90 L 937,90 Q 947,75 957,90 L 1000,90 L 1015,90 Q 1021.4,20 1027.8,125 L 1031,90 L 1037,90 Q 1047,75 1057,90 L 1100,90",
-            answers: ["Accelerated Idioventricular Rhythm (AIVR)", "Wide/Bizarre QRS Complexes", "Absent P-Waves"]
+            answers: ["Accelerated Idioventricular Rhythm (AIVR)", "Wide/Bizarre QRS Complexes", "Absent P-Waves"],
+            explanation: "Same ventricular origin as an idioventricular rhythm, but firing faster (40-100/min) -- often seen transiently after reperfusion of a blocked coronary artery, and usually benign.",
+            bpm: 60,
+            action: "Usually No Treatment (Often Reperfusion-Related) / Monitor"
         },
         {
             name: "Premature Junctional Contraction (PJC)",
             path: "M 0,90 Q 4,82 8,90 L 16,90 L 18,100 L 20,30 L 22,110 L 24,90 L 32,90 Q 40,75 48,90 L 80,90 Q 84,82 88,90 L 96,90 L 98,100 L 100,30 L 102,110 L 104,90 L 112,90 Q 120,75 128,90 L 136,90 L 138,100 L 140,30 L 142,110 L 144,90 L 152,90 Q 160,75 168,90 L 224,90 Q 228,82 232,90 L 240,90 L 242,100 L 244,30 L 246,110 L 248,90 L 256,90 Q 264,75 272,90 L 320,90 Q 324,82 328,90 L 336,90 L 338,100 L 340,30 L 342,110 L 344,90 L 352,90 Q 360,75 368,90 L 416,90 Q 420,82 424,90 L 432,90 L 434,100 L 436,30 L 438,110 L 440,90 L 448,90 Q 456,75 464,90 L 512,90 Q 516,82 520,90 L 528,90 L 530,100 L 532,30 L 534,110 L 536,90 L 544,90 Q 552,75 560,90 L 608,90 Q 612,82 616,90 L 624,90 L 626,100 L 628,30 L 630,110 L 632,90 L 640,90 Q 648,75 656,90 L 704,90 Q 708,82 712,90 L 720,90 L 722,100 L 724,30 L 726,110 L 728,90 L 736,90 Q 744,75 752,90 L 800,90 Q 804,82 808,90 L 816,90 L 818,100 L 820,30 L 822,110 L 824,90 L 832,90 Q 840,75 848,90 L 896,90 Q 900,82 904,90 L 912,90 L 914,100 L 916,30 L 918,110 L 920,90 L 928,90 Q 936,75 944,90 L 992,90 Q 996,82 1000,90 L 1008,90 L 1010,100 L 1012,30 L 1014,110 L 1016,90 L 1024,90 Q 1032,75 1040,90 L 1088,90",
-            answers: ["Premature Junctional Contraction (PJC)", "Normal QRS Width", "No Preceding P Wave"]
+            answers: ["Premature Junctional Contraction (PJC)", "Normal QRS Width", "No Preceding P Wave"],
+            explanation: "An irritable focus in the AV junction fires early, producing a normal narrow QRS with no preceding P wave (the junction doesn't produce the SA node's characteristic upright P).",
+            bpm: 75,
+            action: "No Intervention Needed (Usually Benign)"
         }
     ];
 
@@ -530,9 +697,37 @@
         "Multiple P-Wave Morphologies", "Short PR Interval", "Delta Wave (Slurred QRS Upstroke)"
     ];
 
+    var actionPool = [
+        "Activate STEMI Protocol / Cardiac Cath Lab",
+        "Atropine if Symptomatic / Consider Pacemaker if Recurrent",
+        "Avoid AV Nodal Blockers if AFib Present / Refer for Ablation",
+        "CPR + Epinephrine (Non-Shockable Rhythm)",
+        "Defibrillate (Unsynchronized) + CPR + Epinephrine",
+        "IV Magnesium Sulfate",
+        "Immediate Transcutaneous Pacing / Permanent Pacemaker",
+        "No Intervention Needed (Normal Variant)",
+        "No Intervention Needed (Usually Benign)",
+        "No Intervention Needed / Monitor",
+        "No Intervention Needed / Routine Monitoring",
+        "Rate Control / Synchronized Cardioversion (if Unstable)",
+        "Rate Control ± Anticoagulation (Cardioversion if Unstable)",
+        "Synchronized Cardioversion (Unstable) or Amiodarone (Stable)",
+        "Transcutaneous Pacing / Prepare for Permanent Pacemaker",
+        "Treat Underlying Cause (Electrolytes, Ischemia) — Usually No Treatment if Isolated",
+        "Treat Underlying Cause (Fever, Pain, Hypovolemia, etc.)",
+        "Treat Underlying Cause (e.g., COPD, Hypoxia)",
+        "Treat Underlying Cause / Atropine if Symptomatic",
+        "Treat Underlying Cause / Consider Pacing",
+        "Usually No Treatment (Often Reperfusion-Related) / Monitor",
+        "Usually Observation / Atropine if Symptomatic",
+        "Vagal Maneuvers -> Adenosine (Stable) / Cardioversion (Unstable)"
+    ];
+
     var currentIndex = 0;
     var sessionDeck = [];
     var currentOptions = [];
+    var currentActionOptions = [];
+    var selectedActionIdx = null;
     var attempted = 0;
     var score = 0;
     var currentStreak = 0;
@@ -585,6 +780,7 @@
     }
 
     function initLayout() {
+        loadPersonalData();
         populateSessionLengthOptions();
         buildSessionDeck();
         loadTelemetryStrip();
@@ -626,6 +822,14 @@
         document.getElementById("btn-submit").disabled = false;
         document.getElementById("btn-next").disabled = true;
 
+        document.getElementById("action-workspace").style.display = "none";
+        document.getElementById("action-summary").style.display = "none";
+        document.getElementById("action-options-container").innerHTML = "";
+        document.getElementById("btn-submit-action").disabled = false;
+        currentActionOptions = [];
+        selectedActionIdx = null;
+
+        startHeartbeatLoop(data.bpm);
         beginTimerCountdown();
     }
 
@@ -633,6 +837,68 @@
         if(document.getElementById("btn-submit").disabled) return;
         var card = document.getElementById("card-" + idx);
         card.classList.toggle("selected");
+    }
+
+    function populateActionOptions(data) {
+        var container = document.getElementById("action-options-container");
+        container.innerHTML = "";
+
+        var distractorPool = actionPool.filter(function(a) { return a !== data.action; });
+        var distractors = shuffledCopy(distractorPool).slice(0, 3);
+        currentActionOptions = shuffledCopy([data.action].concat(distractors));
+
+        currentActionOptions.forEach(function(item, idx) {
+            var card = document.createElement("div");
+            card.className = "option-card";
+            card.id = "action-card-" + idx;
+            card.innerText = item;
+            card.onclick = function() { selectActionCard(idx); };
+            container.appendChild(card);
+        });
+    }
+
+    function selectActionCard(idx) {
+        if (document.getElementById("btn-submit-action").disabled) return;
+        currentActionOptions.forEach(function(item, i) {
+            document.getElementById("action-card-" + i).classList.remove("selected");
+        });
+        document.getElementById("action-card-" + idx).classList.add("selected");
+        selectedActionIdx = idx;
+    }
+
+    function checkAction() {
+        var data = sessionDeck[currentIndex];
+        document.getElementById("btn-submit-action").disabled = true;
+
+        var isCorrect = selectedActionIdx !== null && currentActionOptions[selectedActionIdx] === data.action;
+
+        currentActionOptions.forEach(function(item, idx) {
+            var card = document.getElementById("action-card-" + idx);
+            var isSelected = idx === selectedActionIdx;
+            var isCorrectAnswer = item === data.action;
+            if (isSelected && isCorrectAnswer) {
+                card.className = "option-card action-correct";
+            } else if (isSelected && !isCorrectAnswer) {
+                card.className = "option-card action-incorrect";
+            } else if (!isSelected && isCorrectAnswer) {
+                card.className = "option-card missed-indicator";
+            }
+        });
+
+        var titleEl = document.getElementById("action-summary-title");
+        if (isCorrect) {
+            titleEl.innerText = "✓ Correct Action";
+            titleEl.style.color = "var(--telemetry-green)";
+            playChime();
+        } else {
+            titleEl.innerText = "✗ Correct action: " + data.action;
+            titleEl.style.color = "var(--telemetry-red)";
+            playBuzz();
+        }
+        document.getElementById("action-summary").style.display = "block";
+
+        recordActionAttempt(data.name, isCorrect);
+        document.getElementById("btn-next").disabled = false;
     }
 
     function toggleTimerSetting() {
@@ -694,6 +960,8 @@
 
     function triggerAlarmExpiration() {
         document.getElementById("alarm-banner").style.display = "block";
+        stopHeartbeatLoop();
+        playAlarm();
         checkDiagnostic(true);
     }
 
@@ -701,7 +969,6 @@
         var timeoutFlag = !!forcedTimeout;
         clearInterval(timerInterval);
         document.getElementById("btn-submit").disabled = true;
-        document.getElementById("btn-next").disabled = false;
 
         var data = sessionDeck[currentIndex];
         var selected = [];
@@ -735,10 +1002,12 @@
             if(currentStreak > highestStreak) highestStreak = currentStreak;
             document.getElementById("summary-title").innerText = "✓ INTERPRETATION VERIFIED";
             document.getElementById("summary-title").style.color = "var(--telemetry-green)";
+            playChime();
         } else {
             currentStreak = 0;
             document.getElementById("summary-title").innerText = timeoutFlag ? "⚠ CODE BLUE: TIMEOUT FAILURE" : "✗ DIAGNOSTIC DISCREPANCY";
             document.getElementById("summary-title").style.color = "var(--telemetry-red)";
+            if (!timeoutFlag) playBuzz();
         }
 
         streakCard.classList.toggle("is-active", currentStreak > 0);
@@ -746,7 +1015,13 @@
         document.getElementById("hud-score").innerText = score + "/" + attempted;
 
         document.getElementById("summary-desc").innerHTML = "<strong>Target Indicators:</strong> " + data.answers.join(", ");
+        document.getElementById("summary-explanation").innerText = data.explanation;
         document.getElementById("summary").style.display = "block";
+
+        recordDiagnosisAttempt(data.name, perfectlyMatches);
+
+        document.getElementById("action-workspace").style.display = "block";
+        populateActionOptions(data);
     }
 
     function advanceStrip() {
@@ -755,6 +1030,7 @@
     }
 
     function endDiagnosticRotation() {
+        stopHeartbeatLoop();
         document.getElementById("quiz-workspace").style.display = "none";
         document.getElementById("save-score-panel").style.display = "block";
     }
@@ -896,6 +1172,203 @@
         link.href = URL.createObjectURL(blob);
         link.download = "Telemetry_Report_" + name.replace(/\s+/g, '_') + ".txt";
         link.click();
+    }
+
+    // ---------- Sound engine (Web Audio API, no external files) ----------
+    var audioCtx = null;
+    var soundMuted = false;
+    var heartbeatInterval = null;
+    var alarmInterval = null;
+
+    function getAudioCtx() {
+        if (!audioCtx) {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                return null;
+            }
+        }
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+    }
+
+    function playTone(freq, duration, type, startDelay, gainPeak) {
+        if (soundMuted) return;
+        var ctx = getAudioCtx();
+        if (!ctx) return;
+        var t0 = ctx.currentTime + (startDelay || 0);
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = type || "sine";
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0, t0);
+        gain.gain.linearRampToValueAtTime(gainPeak || 0.15, t0 + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t0);
+        osc.stop(t0 + duration + 0.02);
+    }
+
+    function playChime() {
+        playTone(660, 0.12, "sine", 0, 0.14);
+        playTone(880, 0.16, "sine", 0.1, 0.14);
+        playTone(1108, 0.22, "sine", 0.2, 0.14);
+    }
+
+    function playBuzz() {
+        playTone(180, 0.22, "sawtooth", 0, 0.12);
+        playTone(140, 0.28, "sawtooth", 0.08, 0.1);
+    }
+
+    function playAlarmTone() {
+        playTone(880, 0.15, "square", 0, 0.1);
+        playTone(660, 0.15, "square", 0.18, 0.1);
+    }
+
+    function playAlarm() {
+        playAlarmTone();
+        clearInterval(alarmInterval);
+        var count = 0;
+        alarmInterval = setInterval(function() {
+            playAlarmTone();
+            count++;
+            if (count >= 3) clearInterval(alarmInterval);
+        }, 350);
+    }
+
+    function playHeartbeatBlip() {
+        playTone(90, 0.09, "sine", 0, 0.16);
+        playTone(70, 0.12, "sine", 0.08, 0.1);
+    }
+
+    function startHeartbeatLoop(bpm) {
+        stopHeartbeatLoop();
+        if (!bpm || bpm <= 0) return;
+        var intervalMs = 60000 / bpm;
+        playHeartbeatBlip();
+        heartbeatInterval = setInterval(playHeartbeatBlip, intervalMs);
+    }
+
+    function stopHeartbeatLoop() {
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+        }
+    }
+
+    function toggleSoundMute() {
+        soundMuted = !soundMuted;
+        var btn = document.getElementById("sound-toggle-btn");
+        btn.innerText = soundMuted ? "🔇" : "🔊";
+        savePersonalPref();
+        if (soundMuted) stopHeartbeatLoop();
+        else if (sessionDeck[currentIndex]) startHeartbeatLoop(sessionDeck[currentIndex].bpm);
+    }
+
+    // ---------- Personal stats (private per user, not shared) ----------
+    var personalData = {
+        soundMuted: false,
+        stats: {
+            overall: { attempts: 0, correct: 0, actionAttempts: 0, actionCorrect: 0, bestStreak: 0 },
+            byRhythm: {}
+        }
+    };
+
+    async function loadPersonalData() {
+        try {
+            var result = await window.storage.get('personal_data', false);
+            if (result) {
+                var parsed = JSON.parse(result.value);
+                if (parsed && parsed.stats) {
+                    personalData = parsed;
+                }
+            }
+        } catch (e) {
+            // no saved data yet, keep defaults
+        }
+        soundMuted = !!personalData.soundMuted;
+        var btn = document.getElementById("sound-toggle-btn");
+        if (btn) btn.innerText = soundMuted ? "🔇" : "🔊";
+    }
+
+    async function savePersonalData() {
+        try {
+            await window.storage.set('personal_data', JSON.stringify(personalData), false);
+        } catch (e) {
+            console.error("Failed to save personal data:", e);
+        }
+    }
+
+    function savePersonalPref() {
+        personalData.soundMuted = soundMuted;
+        savePersonalData();
+    }
+
+    function recordDiagnosisAttempt(name, correct) {
+        var o = personalData.stats.overall;
+        o.attempts++;
+        if (correct) o.correct++;
+        if (currentStreak > o.bestStreak) o.bestStreak = currentStreak;
+
+        if (!personalData.stats.byRhythm[name]) {
+            personalData.stats.byRhythm[name] = { attempts: 0, correct: 0, actionAttempts: 0, actionCorrect: 0 };
+        }
+        var r = personalData.stats.byRhythm[name];
+        r.attempts++;
+        if (correct) r.correct++;
+
+        savePersonalData();
+    }
+
+    function recordActionAttempt(name, correct) {
+        var o = personalData.stats.overall;
+        o.actionAttempts++;
+        if (correct) o.actionCorrect++;
+
+        if (!personalData.stats.byRhythm[name]) {
+            personalData.stats.byRhythm[name] = { attempts: 0, correct: 0, actionAttempts: 0, actionCorrect: 0 };
+        }
+        var r = personalData.stats.byRhythm[name];
+        r.actionAttempts++;
+        if (correct) r.actionCorrect++;
+
+        savePersonalData();
+    }
+
+    function pct(correct, attempts) {
+        return attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
+    }
+
+    function openStatsModal() {
+        var o = personalData.stats.overall;
+        document.getElementById("stats-overall").innerHTML =
+            "<div class=\"stats-metric\"><div class=\"stats-metric-value\">" + pct(o.correct, o.attempts) + "%</div><div class=\"stats-metric-label\">Diagnosis Accuracy</div></div>" +
+            "<div class=\"stats-metric\"><div class=\"stats-metric-value\">" + pct(o.actionCorrect, o.actionAttempts) + "%</div><div class=\"stats-metric-label\">Action Accuracy</div></div>" +
+            "<div class=\"stats-metric\"><div class=\"stats-metric-value\">" + o.bestStreak + "</div><div class=\"stats-metric-label\">Best Streak</div></div>" +
+            "<div class=\"stats-metric\"><div class=\"stats-metric-value\">" + o.attempts + "</div><div class=\"stats-metric-label\">Strips Attempted</div></div>";
+
+        var rows = Object.keys(personalData.stats.byRhythm).map(function(name) {
+            var r = personalData.stats.byRhythm[name];
+            return { name: name, attempts: r.attempts, accuracy: pct(r.correct, r.attempts) };
+        }).filter(function(r) { return r.attempts > 0; });
+        rows.sort(function(a, b) { return a.accuracy - b.accuracy; });
+
+        var tbody = document.getElementById("stats-rhythm-rows");
+        if (rows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="color:var(--text-muted); text-align:center;">No attempts yet — start a rotation!</td></tr>';
+        } else {
+            tbody.innerHTML = rows.map(function(r) {
+                var lowClass = (r.accuracy < 60 && r.attempts >= 3) ? ' class="needs-practice"' : '';
+                return '<tr' + lowClass + '><td>' + r.name + '</td><td>' + r.attempts + '</td><td>' + r.accuracy + '%</td></tr>';
+            }).join("");
+        }
+
+        document.getElementById("stats-modal-backdrop").style.display = "flex";
+    }
+
+    function closeStatsModal() {
+        document.getElementById("stats-modal-backdrop").style.display = "none";
     }
 
     window.onload = initLayout;
